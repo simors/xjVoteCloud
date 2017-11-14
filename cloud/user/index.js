@@ -2,12 +2,13 @@
  * Created by yangyang on 2017/11/14.
  */
 import AV from 'leanengine'
+import * as errno from '../errno'
 
 export async function updateUserInfo(request) {
   let {nickname, gender, avatar, province, city} = request.params
   let currentUser = request.currentUser
   if (!currentUser) {
-    throw new AV.Cloud.Error('Permission denied, need to login first', {code: 100});
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
 
   if (nickname) {
