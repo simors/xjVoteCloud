@@ -4,6 +4,25 @@
 import AV from 'leanengine'
 import * as errno from '../errno'
 
+export function constructUser(leanUser) {
+  let user = {}
+  if (!leanUser) {
+    return undefined
+  }
+  let leanUserAttr = leanUser.attributes
+  user.id = leanUser.id
+  user.createdAt = leanUser.createdAt
+  user.updatedAt = leanUser.updatedAt
+  user.nickname = leanUserAttr.nickname
+  user.username = leanUserAttr.username
+  user.avatar = leanUserAttr.avatar
+  user.gender = leanUserAttr.gender
+  user.province = leanUserAttr.province
+  user.city = leanUserAttr.city
+  user.openid = leanUserAttr.authData.lc_weapp.openid || undefined
+  return user
+}
+
 export async function updateUserInfo(request) {
   let {nickname, gender, avatar, province, city} = request.params
   let currentUser = request.currentUser
@@ -26,5 +45,7 @@ export async function updateUserInfo(request) {
   if (city) {
     currentUser.set('city', city)
   }
-  return await currentUser.save()
+  await currentUser.save()
+  let newUser = await currentUser.fetch()
+  return constructUser(newUser)
 }
