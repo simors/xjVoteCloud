@@ -4,7 +4,7 @@
 import AV from 'leanengine'
 import * as errno from '../errno'
 
-function constructAward(leanAward) {
+function constructGift(leanAward) {
   let award = {}
   if (!leanAward) {
     return undefined
@@ -20,13 +20,13 @@ function constructAward(leanAward) {
   return award
 }
 
-export async function fetchAwards(request) {
+export async function fetchGifts(request) {
   let retAwards = []
   let query = new AV.Query('Awards')
   query.ascending('price')
   let result = await query.find()
   for (let award of result) {
-    retAwards.push(constructAward(award))
+    retAwards.push(constructGift(award))
   }
   return retAwards
 }

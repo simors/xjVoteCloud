@@ -6,4 +6,4 @@ import * as voteCloud from './cloud/vote'
 AV.Cloud.define('userUpdateInfo', userCloud.updateUserInfo);
 
 /* 投票 */
-AV.Cloud.define('voteFetchAwards', voteCloud.fetchAwards);
+AV.Cloud.define('voteFetchGifts', voteCloud.fetchGifts);
