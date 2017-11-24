@@ -1,7 +1,9 @@
 var AV = require('leanengine');
 import * as userCloud from './cloud/user'
+import * as voteCloud from './cloud/vote'
 
-/**
- * 一个简单的云代码方法
- */
+/* 用户 */
 AV.Cloud.define('userUpdateInfo', userCloud.updateUserInfo);
+
+/* 投票 */
+AV.Cloud.define('voteFetchAwards', voteCloud.fetchAwards);
