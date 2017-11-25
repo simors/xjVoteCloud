@@ -22,7 +22,7 @@ function constructGift(leanAward) {
 
 export async function fetchGifts(request) {
   let retAwards = []
-  let query = new AV.Query('Awards')
+  let query = new AV.Query('Gifts')
   query.ascending('price')
   let result = await query.find()
   for (let award of result) {
