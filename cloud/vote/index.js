@@ -3,6 +3,7 @@
  */
 import AV from 'leanengine'
 import * as errno from '../errno'
+import {constructUser} from '../user'
 
 const VOTE_STATUS = {
   EDITING: 1,     // 正在编辑
@@ -26,6 +27,32 @@ function constructGift(leanAward) {
   award.photo = awardAttr.photo
   award.price = awardAttr.price
   return award
+}
+
+function constructVote(leanVote, includeUser) {
+  let vote = {}
+  if (!leanVote) {
+    return undefined
+  }
+  let voteAttr = leanVote.attributes
+  vote.id = leanVote.id
+  vote.createdAt = leanVote.createdAt
+  vote.updatedAt = leanVote.updatedAt
+  vote.creatorId = voteAttr.creator.id
+  vote.title = voteAttr.title
+  vote.cover = voteAttr.cover
+  vote.notice = voteAttr.notice
+  vote.organizer = voteAttr.organizer
+  vote.awards = voteAttr.awards
+  vote.gifts = voteAttr.gifts
+  vote.startDate = voteAttr.startDate
+  vote.expire = voteAttr.expire
+  vote.status = voteAttr.status
+  
+  if (includeUser) {
+    vote.creator = constructUser(voteAttr.creator)
+  }
+  return vote
 }
 
 /**
@@ -166,4 +193,28 @@ export async function createOrUpdateVote(request) {
   }
   result = await updateVote(voteObj)
   return result
+}
+
+/**
+ * 根据id来获取投票的详情信息
+ * @param request
+ */
+export async function fetchVoteById(request) {
+  let {voteId} = request.params
+  let query = new AV.Query('Votes')
+  let leanVote = await query.get(voteId)
+  let vote = constructVote(leanVote)
+  let giftIds = vote.gifts
+  if (giftIds && Array.isArray(giftIds)) {
+    let giftQuery = new AV.Query('Gifts')
+    giftQuery.containedIn('objectId', giftIds)
+    let leanGifts = await giftQuery.find()
+    let gifts = []
+    leanGifts.forEach((gift) => {
+      gifts.push(constructGift(gift))
+    })
+    vote.gifts = gifts
+  }
+  
+  return vote
 }
