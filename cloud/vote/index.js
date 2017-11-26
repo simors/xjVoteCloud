@@ -218,3 +218,15 @@ export async function fetchVoteById(request) {
   
   return vote
 }
+
+/**
+ * 更新投票的状态，通常需要在完成支付、活动开始或活动结束的时候调用
+ * @param voteId
+ * @param status
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function updateVoteStatus(voteId, status) {
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.set('status', status)
+  return await vote.save()
+}
