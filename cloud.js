@@ -10,3 +10,5 @@ AV.Cloud.define('voteFetchGifts', voteCloud.fetchGifts);
 AV.Cloud.define('voteCreateVote', voteCloud.createVote);
 AV.Cloud.define('voteCreateOrUpdateVote', voteCloud.createOrUpdateVote);
 AV.Cloud.define('voteFetchById', voteCloud.fetchVoteById);
+AV.Cloud.define('voteFetchSet', voteCloud.fetchVotes);
+AV.Cloud.define('voteFetchGiftsByVote', voteCloud.fetchGiftsByVote);

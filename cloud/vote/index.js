@@ -13,6 +13,11 @@ const VOTE_STATUS = {
   DONE: 5,        // 已结束
 }
 
+const VOTE_SEARCH_TYPE = {
+  ALL: 'all',
+  PERSONAL: 'personal',
+}
+
 function constructGift(leanAward) {
   let award = {}
   if (!leanAward) {
@@ -199,11 +204,10 @@ export async function createOrUpdateVote(request) {
 }
 
 /**
- * 根据id来获取投票的详情信息
- * @param request
+ * 获取投票活动的详情，包括礼品详情列表
+ * @param voteId
  */
-export async function fetchVoteById(request) {
-  let {voteId} = request.params
+async function getVoteDetailById(voteId) {
   let query = new AV.Query('Votes')
   let leanVote = await query.get(voteId)
   let vote = constructVote(leanVote)
@@ -223,6 +227,62 @@ export async function fetchVoteById(request) {
 }
 
 /**
+ * 根据id来获取投票的详情信息
+ * @param request
+ */
+export async function fetchVoteById(request) {
+  let {voteId} = request.params
+  return await getVoteDetailById(voteId)
+}
+
+/**
+ * 获取创建的投票列表
+ * @param request
+ * @returns {Array}
+ */
+export async function fetchVotes(request) {
+  let currentUser = request.currentUser
+  let {searchType, lastTime, limit} = request.params
+  
+  let query = new AV.Query('Votes')
+  query.descending('createdAt')
+  
+  if (searchType === VOTE_SEARCH_TYPE.PERSONAL) {
+    if (!currentUser) {
+      throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+    }
+    query.equalTo('creator', currentUser)
+  }
+  if (lastTime) {
+    query.lessThan('createdAt', new Date(lastTime))
+  }
+  if (limit) {
+    query.limit(limit)
+  } else {
+    query.limit(10)
+  }
+  let leanVotes = await query.find()
+  let votes = []
+  leanVotes.forEach((leanVote) => {
+    votes.push(constructVote(leanVote, false))
+  })
+  return votes
+}
+
+/**
+ * 获取某个投票活动下的礼品列表
+ * @param request
+ */
+export async function fetchGiftsByVote(request) {
+  let {voteId} = request.params
+  let vote = await getVoteDetailById(voteId)
+  if (vote.gifts && Array.isArray(vote.gifts)) {
+    return vote.gifts
+  }
+  return []
+}
+
+/**
  * 更新投票的状态，通常需要在完成支付、活动开始或活动结束的时候调用
  * @param voteId
  * @param status
@@ -231,5 +291,39 @@ export async function fetchVoteById(request) {
 export async function updateVoteStatus(voteId, status) {
   let vote = AV.Object.createWithoutData('Votes', voteId)
   vote.set('status', status)
+  return await vote.save()
+}
+
+/**
+ * 更新投票的热度
+ * @param request
+ */
+export async function incVotePv(request) {
+  let {voteId} = request.params
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.increment('pv')
+  return await vote.save()
+}
+
+/**
+ * 增加参与投票的票数
+ * @param voteId
+ * @param voteNum
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function incVoteNum(voteId, voteNum) {
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.increment('voteNum', voteNum)
+  return await vote.save()
+}
+
+/**
+ * 增加活动参与者的个数
+ * @param voteId
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function incVoteApplyNum(voteId) {
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.increment('applyNum')
   return await vote.save()
 }
