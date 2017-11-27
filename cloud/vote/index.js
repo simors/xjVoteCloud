@@ -63,6 +63,34 @@ function constructVote(leanVote, includeUser) {
   return vote
 }
 
+function constructPlayer(leanPlayer, includeUser, includeVote) {
+  let player = {}
+  if (!leanPlayer) {
+    return undefined
+  }
+  let playerAttr = leanPlayer.attributes
+  player.id = leanPlayer.id
+  player.createdAt = leanPlayer.createdAt
+  player.updatedAt = leanPlayer.updatedAt
+  player.number = playerAttr.number
+  player.name = playerAttr.name
+  player.declaration = playerAttr.declaration
+  player.album = playerAttr.album
+  player.giftNum = playerAttr.giftNum
+  player.voteNum = playerAttr.voteNum
+  player.pv = playerAttr.pv
+  player.creatorId = playerAttr.creator.id
+  player.voteId = playerAttr.vote.id
+  
+  if (includeUser) {
+    player.creator = constructUser(playerAttr.creator)
+  }
+  if (includeVote) {
+    player.vote = constructVote(playerAttr.vote, false)
+  }
+  return player
+}
+
 /**
  * 获取所有礼品列表
  * @param request
@@ -326,4 +354,49 @@ export async function incVoteApplyNum(voteId) {
   let vote = AV.Object.createWithoutData('Votes', voteId)
   vote.increment('applyNum')
   return await vote.save()
+}
+
+/**
+ * 根据投票活动获取新报名参与者的参赛编号
+ * @param voteId
+ */
+async function getLastPlayerNumber(voteId) {
+  let query = new AV.Query('Player')
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  query.equalTo('vote', vote)
+  let leanPlayers = await query.find()
+  let maxNumber = 0
+  leanPlayers.forEach((leanPlayer) => {
+    let player = constructPlayer(leanPlayer, false, false)
+    maxNumber = maxNumber > player.number ? maxNumber : player.number
+  })
+  return maxNumber + 1
+}
+
+/**
+ * 添加一个新的参赛选手
+ * @param request
+ */
+export async function createPlayerApply(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {voteId, name, declaration, album} = request.params
+  
+  // 更新参与人数
+  await incVoteApplyNum(voteId)
+  
+  let number = await getLastPlayerNumber(voteId)
+  
+  let Player = AV.Object.extend('Player')
+  let player = new Player()
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  player.set('vote', vote)
+  player.set('creator', currentUser)
+  player.set('number', number)
+  player.set('name', name)
+  player.set('declaration', declaration)
+  player.set('album', album)
+  return await player.save()
 }
