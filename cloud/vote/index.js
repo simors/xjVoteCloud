@@ -48,6 +48,9 @@ function constructVote(leanVote, includeUser) {
   vote.startDate = voteAttr.startDate
   vote.expire = voteAttr.expire
   vote.status = voteAttr.status
+  vote.applyNum = voteAttr.applyNum
+  vote.voteNum = voteAttr.voteNum
+  vote.pv = voteAttr.pv
   
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
