@@ -138,3 +138,8 @@ export const EHWPOISON          =   -133;       /* Memory page has hardware erro
 
 export const ERROR_BASE               =   1000;
 export const ERROR_BASE_USER          =   -(ERROR_BASE);
+export const ERROR_BASE_VOTE          =   -(ERROR_BASE + 1000)
+
+// 投票
+export const ERROR_VOTE_USE_UP        =   ERROR_BASE_VOTE               // 当天的投票数被用完
+export const ERROR_VOTE_WAS_DONE      =   ERROR_BASE_VOTE - 1           // 投票活动已结束

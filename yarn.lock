@@ -1886,6 +1886,10 @@ minimist@^1.2.0:
   dependencies:
     minimist "0.0.8"
 
+moment@^2.19.2:
+  version "2.19.2"
+  resolved "http://registry.npm.taobao.org/moment/download/moment-2.19.2.tgz#8a7f774c95a64550b4c7ebd496683908f9419dbe"
+
 ms@0.7.0:
   version "0.7.0"
   resolved "http://registry.npm.taobao.org/ms/download/ms-0.7.0.tgz#865be94c2e7397ad8a57da6a633a6e2f30798b83"

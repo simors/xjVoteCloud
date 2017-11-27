@@ -3,6 +3,7 @@
  */
 import AV from 'leanengine'
 import * as errno from '../errno'
+import moment from 'moment'
 import {constructUser} from '../user'
 
 const VOTE_STATUS = {
@@ -255,6 +256,19 @@ async function getVoteDetailById(voteId) {
 }
 
 /**
+ * 根据参与者id获取对应投票活动信息
+ * @param playerId
+ * @returns {*}
+ */
+async function getVoteByPlayer(playerId) {
+  let query = new AV.Query('Player')
+  query.include('vote')
+  let leanPlayer = await query.get(playerId)
+  let player = constructPlayer(leanPlayer, false, true)
+  return player.vote
+}
+
+/**
  * 根据id来获取投票的详情信息
  * @param request
  */
@@ -399,4 +413,134 @@ export async function createPlayerApply(request) {
   player.set('declaration', declaration)
   player.set('album', album)
   return await player.save()
+}
+
+/**
+ * 获取某个投票活动的所有参与者
+ * @param request
+ * @returns {Array}
+ */
+export async function fetchVotePlayers(request) {
+  let {voteId, lastNumber} = request.params
+  
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  
+  let query = new AV.Query('Player')
+  query.ascending('number')
+  query.equalTo('vote', vote)
+  if (lastNumber) {
+    query.greaterThan('number', lastNumber)
+  }
+  let leanPlayers = await query.find()
+  let players = []
+  leanPlayers.forEach((player) => {
+    players.push(constructPlayer(player, false, false))
+  })
+  return players
+}
+
+/**
+ * 刷新某个参赛选手的热度
+ * @param request
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function incPlayerPv(request) {
+  let {playerId} = request.params
+  let player = AV.Object.createWithoutData('Player', playerId)
+  player.increment('pv')
+  return await player.save()
+}
+
+/**
+ * 更新某个参赛选手获得的投票数
+ * @param playerId
+ * @param voteNum
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function incPlayerVoteNum(playerId, voteNum) {
+  let player = AV.Object.createWithoutData('Player', playerId)
+  player.increment('voteNum', voteNum)
+  return await player.save()
+}
+
+/**
+ * 获取某个用户对参赛选手的投票信息
+ * @param playerId
+ * @param user
+ * @returns {*}
+ */
+async function getVotePlayerByDate(playerId, user) {
+  let query = new AV.Query('VoteMap')
+  let player = AV.Object.createWithoutData('Player', playerId)
+  query.equalTo('voteDate', new Date(moment().format('YYYY-MM-DD')))
+  query.equalTo('player', player)
+  query.equalTo('user', user)
+  let result = await query.first()
+  return result
+}
+
+/**
+ * 判断当天用户是否还可以投票，每个用户每天智能给同一个选手投1票
+ * @param playerId
+ * @param user
+ * @returns {boolean}
+ */
+async function isVoteAllowed(playerId, user) {
+  const maxVotePerDay = 1
+  let query = new AV.Query('VoteMap')
+  let player = AV.Object.createWithoutData('Player', playerId)
+  query.equalTo('voteDate', new Date(moment().format('YYYY-MM-DD')))
+  query.equalTo('player', player)
+  query.equalTo('user', user)
+  let result = await query.find()
+  if (result.length > 0) {
+    let voteNum = result[0].attributes.voteNum
+    if (voteNum == maxVotePerDay) {
+      return false
+    }
+    return true
+  }
+  return true
+}
+
+/**
+ * 为某个参赛选手投票
+ * @param request
+ */
+export async function voteForPlayer(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {playerId} = request.params
+  
+  let isAllowed = await isVoteAllowed(playerId, currentUser)
+  if (!isAllowed) {
+    throw new AV.Cloud.Error('Vote was used up', {code: errno.ERROR_VOTE_USE_UP});
+  }
+  
+  let voteMap = await getVotePlayerByDate(playerId, currentUser)
+  if (!voteMap) {
+    let VoteMap = AV.Object.extend('VoteMap')
+    voteMap = new VoteMap()
+  }
+  
+  let player = AV.Object.createWithoutData('Player', playerId)
+  let vote = await getVoteByPlayer(playerId)
+  if (vote.status == VOTE_STATUS.DONE) {
+    throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
+  }
+  let leanVote = AV.Object.createWithoutData('Votes', vote.id)
+  
+  voteMap.set('user', currentUser)
+  voteMap.set('player', player)
+  voteMap.set('vote', leanVote)
+  voteMap.set('voteDate', new Date(moment().format('YYYY-MM-DD')))
+  voteMap.increment('voteNum')
+  let newVoteMap = await voteMap.save()
+  // 增加参赛者票数统计值
+  await incPlayerVoteNum(playerId, 1)
+  // 增加此投票活动的总票数统计值
+  await incVoteNum(vote.id, 1)
+  return newVoteMap
 }
