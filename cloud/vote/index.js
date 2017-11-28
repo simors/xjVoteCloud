@@ -140,7 +140,7 @@ export async function presentGift(request) {
   
   let player = AV.Object.createWithoutData('Player', playerId)
   let gift = AV.Object.createWithoutData('Gifts', giftId)
-  let vote = getVoteByPlayer(playerId)
+  let vote = await getVoteByPlayer(playerId)
   
   let GiftMap = AV.Object.extend('GiftMap')
   let giftMap = new GiftMap()
