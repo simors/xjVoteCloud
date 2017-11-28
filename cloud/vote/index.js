@@ -500,6 +500,27 @@ export async function incPlayerVoteNum(playerId, voteNum) {
 }
 
 /**
+ * 获取某个投票活动过得排行榜
+ * @param request
+ * @returns {Array}
+ */
+export async function fetchVoteRank(request) {
+  let {voteId} = request.params
+  
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  let query = new AV.Query('Player')
+  query.equalTo('vote', vote)
+  query.descending('voteNum')
+  query.limit(500)
+  let leanRank = await query.find()
+  let rank = []
+  leanRank.forEach((player) => {
+    rank.push(constructPlayer(player))
+  })
+  return rank
+}
+
+/**
  * 获取某个用户对参赛选手的投票信息
  * @param playerId
  * @param user
@@ -580,4 +601,3 @@ export async function voteForPlayer(request) {
   await incVoteNum(vote.id, 1)
   return newVoteMap
 }
-
