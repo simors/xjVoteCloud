@@ -233,13 +233,49 @@ export async function createOrUpdateVote(request) {
 }
 
 /**
+ * 判断投票活动状态，如是否已开始，，是否已经结束，每次状态变化时需要更新状态并返回最新的投票信息
+ * @param vote
+ */
+async function judgeVoteStatus(vote) {
+  let nowDate = moment().format('YYYY-MM-DD')
+  let status = vote.attributes.status
+  let startDate = vote.attributes.startDate
+  let expire = vote.attributes.expire
+  let endDate = undefined
+  let query = new AV.Query('Votes')
+  
+  if (status == VOTE_STATUS.WAITING) {
+    endDate = moment(startDate).format('YYYY-MM-DD')
+    if (nowDate > endDate) {
+      await updateVoteStatus(vote.id, VOTE_STATUS.STARTING)
+      return await query.get(vote.id)
+    }
+  } else if (status == VOTE_STATUS.STARTING) {
+    endDate = moment(startDate).add(expire, 'days').format('YYYY-MM-DD')
+    if (nowDate > endDate) {
+      await updateVoteStatus(vote.id, VOTE_STATUS.DONE)
+      return await query.get(vote.id)
+    }
+  }
+  
+  return vote
+}
+
+/**
  * 获取投票活动的详情，包括礼品详情列表
  * @param voteId
+ * @param updateStatus    是否要更新投票的状态
  */
-async function getVoteDetailById(voteId) {
+async function getVoteDetailById(voteId, updateStatus) {
   let query = new AV.Query('Votes')
   let leanVote = await query.get(voteId)
-  let vote = constructVote(leanVote)
+  let stLeanVote = undefined
+  if (updateStatus) {
+    stLeanVote = await judgeVoteStatus(leanVote)
+  } else {
+    stLeanVote = leanVote
+  }
+  let vote = constructVote(stLeanVote)
   let giftIds = vote.gifts
   if (giftIds && Array.isArray(giftIds)) {
     let giftQuery = new AV.Query('Gifts')
@@ -273,8 +309,8 @@ async function getVoteByPlayer(playerId) {
  * @param request
  */
 export async function fetchVoteById(request) {
-  let {voteId} = request.params
-  return await getVoteDetailById(voteId)
+  let {voteId, updateStatus} = request.params
+  return await getVoteDetailById(voteId, updateStatus)
 }
 
 /**
@@ -317,7 +353,7 @@ export async function fetchVotes(request) {
  */
 export async function fetchGiftsByVote(request) {
   let {voteId} = request.params
-  let vote = await getVoteDetailById(voteId)
+  let vote = await getVoteDetailById(voteId, false)
   if (vote.gifts && Array.isArray(vote.gifts)) {
     return vote.gifts
   }
@@ -544,3 +580,4 @@ export async function voteForPlayer(request) {
   await incVoteNum(vote.id, 1)
   return newVoteMap
 }
+
