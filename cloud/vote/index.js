@@ -44,7 +44,7 @@ function constructVote(leanVote, includeUser) {
   vote.id = leanVote.id
   vote.createdAt = leanVote.createdAt
   vote.updatedAt = leanVote.updatedAt
-  vote.creatorId = voteAttr.creator.id
+  vote.creatorId = voteAttr.creator ? voteAttr.creator.id : undefined
   vote.title = voteAttr.title
   vote.cover = voteAttr.cover
   vote.notice = voteAttr.notice
@@ -80,8 +80,8 @@ function constructPlayer(leanPlayer, includeUser, includeVote) {
   player.giftNum = playerAttr.giftNum
   player.voteNum = playerAttr.voteNum
   player.pv = playerAttr.pv
-  player.creatorId = playerAttr.creator.id
-  player.voteId = playerAttr.vote.id
+  player.creatorId = playerAttr.creator ? playerAttr.creator.id : undefined
+  player.voteId = playerAttr.vote ? playerAttr.vote.id : undefined
   
   if (includeUser) {
     player.creator = constructUser(playerAttr.creator)
@@ -90,6 +90,24 @@ function constructPlayer(leanPlayer, includeUser, includeVote) {
     player.vote = constructVote(playerAttr.vote, false)
   }
   return player
+}
+
+function constructGiftMap(leanGiftMap) {
+  let giftMap = {}
+  if (!leanGiftMap) {
+    return undefined
+  }
+  let giftMapAttr = leanGiftMap.attributes
+  giftMap.id = leanGiftMap.id
+  giftMap.createdAt = leanGiftMap.createdAt
+  giftMap.updatedAt = leanGiftMap.updatedAt
+  giftMap.giftNum = giftMapAttr.giftNum
+  giftMap.price = giftMapAttr.price
+  giftMap.vote = constructVote(giftMapAttr.vote, false)
+  giftMap.gift = constructGift(giftMapAttr.gift)
+  giftMap.user = constructUser(giftMapAttr.user)
+  giftMap.player = constructPlayer(giftMapAttr.player, false, false)
+  return giftMap
 }
 
 /**
@@ -106,6 +124,56 @@ export async function fetchGifts(request) {
     retAwards.push(constructGift(award))
   }
   return retAwards
+}
+
+/**
+ * 赠送某个礼物
+ * @param request
+ * @returns {*}
+ */
+export async function presentGift(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {playerId, giftId, price, giftNum} = request.params
+  
+  let player = AV.Object.createWithoutData('Player', playerId)
+  let gift = AV.Object.createWithoutData('Gifts', giftId)
+  let vote = getVoteByPlayer(playerId)
+  
+  let GiftMap = AV.Object.extend('GiftMap')
+  let giftMap = new GiftMap()
+  giftMap.set('vote', vote)
+  giftMap.set('gift', gift)
+  giftMap.set('player', player)
+  giftMap.set('user', currentUser)
+  giftMap.set('giftNum', giftNum)
+  giftMap.set('price', price)
+  return await giftMap.save()
+}
+
+/**
+ * 获取某个参赛选手名下收到的礼物
+ * @param request
+ */
+export async function listGiftsUnderPlayer(request) {
+  let {playerId, lastTime} = request.params
+  
+  let player = AV.Object.createWithoutData('Player', playerId)
+  let query = new AV.Query('GiftMap')
+  query.equalTo('player', player)
+  if (lastTime) {
+    query.lessThan('createdAt', new Date(lastTime))
+  }
+  query.include(['user', 'player', 'vote', 'gift'])
+  query.descending('createdAt')
+  let giftsList = await query.find()
+  let presentGifts = []
+  giftsList.forEach((giftMap) => {
+    presentGifts.push(constructGiftMap(giftMap))
+  })
+  return presentGifts
 }
 
 /**
@@ -300,8 +368,7 @@ async function getVoteByPlayer(playerId) {
   let query = new AV.Query('Player')
   query.include('vote')
   let leanPlayer = await query.get(playerId)
-  let player = constructPlayer(leanPlayer, false, true)
-  return player.vote
+  return leanPlayer.attributes.vote
 }
 
 /**
@@ -584,14 +651,13 @@ export async function voteForPlayer(request) {
   
   let player = AV.Object.createWithoutData('Player', playerId)
   let vote = await getVoteByPlayer(playerId)
-  if (vote.status == VOTE_STATUS.DONE) {
+  if (vote.attributes.status == VOTE_STATUS.DONE) {
     throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
   }
-  let leanVote = AV.Object.createWithoutData('Votes', vote.id)
   
   voteMap.set('user', currentUser)
   voteMap.set('player', player)
-  voteMap.set('vote', leanVote)
+  voteMap.set('vote', vote)
   voteMap.set('voteDate', new Date(moment().format('YYYY-MM-DD')))
   voteMap.increment('voteNum')
   let newVoteMap = await voteMap.save()
