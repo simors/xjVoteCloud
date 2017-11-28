@@ -127,17 +127,15 @@ export async function fetchGifts(request) {
 }
 
 /**
- * 赠送某个礼物
- * @param request
+ * 赠送某个礼物，在用户成功支付后，由支付接口调用
+ * @param user
+ * @param playerId
+ * @param giftId
+ * @param price
+ * @param giftNum
  * @returns {*}
  */
-export async function presentGift(request) {
-  let currentUser = request.currentUser
-  if (!currentUser) {
-    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
-  }
-  let {playerId, giftId, price, giftNum} = request.params
-  
+export async function presentGift(user, playerId, giftId, price, giftNum) {
   let player = AV.Object.createWithoutData('Player', playerId)
   let gift = AV.Object.createWithoutData('Gifts', giftId)
   let vote = await getVoteByPlayer(playerId)
@@ -147,7 +145,7 @@ export async function presentGift(request) {
   giftMap.set('vote', vote)
   giftMap.set('gift', gift)
   giftMap.set('player', player)
-  giftMap.set('user', currentUser)
+  giftMap.set('user', user)
   giftMap.set('giftNum', giftNum)
   giftMap.set('price', price)
   return await giftMap.save()
