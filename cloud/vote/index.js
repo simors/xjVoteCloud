@@ -665,3 +665,19 @@ export async function voteForPlayer(request) {
   await incVoteNum(vote.id, 1)
   return newVoteMap
 }
+
+/**
+ * 根据模版名称获取规则模板的内容
+ * @param request
+ */
+export async function getRuleTemplate(request) {
+  let {tempName} = request.params
+  
+  let query = new AV.Query('RuleTemp')
+  query.equalTo('tempName', tempName)
+  let result = await query.first()
+  if (result) {
+    return result.attributes.content
+  }
+  return ''
+}

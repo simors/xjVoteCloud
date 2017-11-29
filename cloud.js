@@ -20,3 +20,4 @@ AV.Cloud.define('voteFetchVotePlayers', voteCloud.fetchVotePlayers);
 AV.Cloud.define('voteIncPlayerPv', voteCloud.incPlayerPv);
 AV.Cloud.define('voteFetchRank', voteCloud.fetchVoteRank);
 AV.Cloud.define('voteVoteForPlayer', voteCloud.voteForPlayer);
+AV.Cloud.define('voteGetRuleTemplate', voteCloud.getRuleTemplate);
