@@ -48,6 +48,7 @@ function constructVote(leanVote, includeUser) {
   vote.title = voteAttr.title
   vote.cover = voteAttr.cover
   vote.notice = voteAttr.notice
+  vote.rule = voteAttr.rule
   vote.organizer = voteAttr.organizer
   vote.awards = voteAttr.awards
   vote.gifts = voteAttr.gifts
