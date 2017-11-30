@@ -635,6 +635,10 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
+bluebird@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
+
 body-parser@1.12.3:
   version "1.12.3"
   resolved "http://registry.npm.taobao.org/body-parser/download/body-parser-1.12.3.tgz#5f40bf17e7823be6895d4d35582752e36cf97f71"
@@ -804,6 +808,10 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
   dependencies:
     delayed-stream "~1.0.0"
 
+complex.js@2.0.4:
+  version "2.0.4"
+  resolved "https://registry.npmjs.org/complex.js/-/complex.js-2.0.4.tgz#d8e7cfb9652d1e853e723386421c1a0ca7a48373"
+
 component-emitter@^1.2.0:
   version "1.2.1"
   resolved "http://registry.npm.taobao.org/component-emitter/download/component-emitter-1.2.1.tgz#137918d6d78283f7df7a6b7c5a63e140e69425e6"
@@ -960,6 +968,10 @@ debug@~2.2.0:
 decamelize@^1.1.1:
   version "1.2.0"
   resolved "http://registry.npm.taobao.org/decamelize/download/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
+
+decimal.js@7.2.3:
+  version "7.2.3"
+  resolved "https://registry.npmjs.org/decimal.js/-/decimal.js-7.2.3.tgz#6434c3b8a8c375780062fc633d0d2bbdb264cc78"
 
 deep-extend@~0.4.0:
   version "0.4.2"
@@ -1227,6 +1239,10 @@ formidable@^1.1.1:
 forwarded@~0.1.0:
   version "0.1.2"
   resolved "http://registry.npm.taobao.org/forwarded/download/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
+
+fraction.js@4.0.2:
+  version "4.0.2"
+  resolved "https://registry.npmjs.org/fraction.js/-/fraction.js-4.0.2.tgz#0eae896626f334b1bde763371347a83b5575d7f0"
 
 fresh@0.2.4:
   version "0.2.4"
@@ -1577,6 +1593,10 @@ isstream@~0.1.2:
   version "0.1.2"
   resolved "http://registry.npm.taobao.org/isstream/download/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
 
+javascript-natural-sort@0.7.1:
+  version "0.7.1"
+  resolved "https://registry.npmjs.org/javascript-natural-sort/-/javascript-natural-sort-0.7.1.tgz#f9e2303d4507f6d74355a73664d1440fb5a0ef59"
+
 javascript-state-machine@^2.3.5:
   version "2.4.0"
   resolved "http://registry.npm.taobao.org/javascript-state-machine/download/javascript-state-machine-2.4.0.tgz#d8be31ec38f24ac1a1832f0b672fc3cd5f79c96e"
@@ -1775,6 +1795,10 @@ lodash.restparam@^3.0.0:
   version "3.6.1"
   resolved "http://registry.npm.taobao.org/lodash.restparam/download/lodash.restparam-3.6.1.tgz#936a4e309ef330a7645ed4145986c85ae5b20805"
 
+lodash@^3.1.0:
+  version "3.10.1"
+  resolved "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
+
 lodash@^4.17.4, lodash@^4.6.0:
   version "4.17.4"
   resolved "http://registry.npm.taobao.org/lodash/download/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
@@ -1809,6 +1833,18 @@ make-dir@^1.0.0:
 map-stream@~0.1.0:
   version "0.1.0"
   resolved "http://registry.npm.taobao.org/map-stream/download/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
+
+mathjs@^3.17.0:
+  version "3.17.0"
+  resolved "https://registry.npmjs.org/mathjs/-/mathjs-3.17.0.tgz#9569d278874546175c9d0497d7417eb88fb61503"
+  dependencies:
+    complex.js "2.0.4"
+    decimal.js "7.2.3"
+    fraction.js "4.0.2"
+    javascript-natural-sort "0.7.1"
+    seed-random "2.2.0"
+    tiny-emitter "2.0.0"
+    typed-function "0.10.6"
 
 md5@^2.0.0:
   version "2.2.1"
@@ -2097,6 +2133,14 @@ pify@^3.0.0:
   version "3.0.0"
   resolved "http://registry.npm.taobao.org/pify/download/pify-3.0.0.tgz#e5a4acd2c101fdf3d9a4d07f0dbc4db49dd28176"
 
+pingpp@^2.0.13:
+  version "2.0.13"
+  resolved "https://registry.npmjs.org/pingpp/-/pingpp-2.0.13.tgz#2ca2d906c23844163df4a89c6243172aa74df487"
+  dependencies:
+    lodash "^3.1.0"
+    qs "^2.4.1"
+    when "~3.1.0"
+
 prepend-http@^1.0.1:
   version "1.0.4"
   resolved "http://registry.npm.taobao.org/prepend-http/download/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
@@ -2150,6 +2194,10 @@ qs@2.4.1:
 qs@6.5.1, qs@^6.5.1:
   version "6.5.1"
   resolved "http://registry.npm.taobao.org/qs/download/qs-6.5.1.tgz#349cdf6eef89ec45c12d7d5eb3fc0c870343a6d8"
+
+qs@^2.4.1:
+  version "2.4.2"
+  resolved "https://registry.npmjs.org/qs/-/qs-2.4.2.tgz#f7ce788e5777df0b5010da7f7c4e73ba32470f5a"
 
 qs@~6.4.0:
   version "6.4.0"
@@ -2323,6 +2371,10 @@ rimraf@2, rimraf@^2.5.1, rimraf@^2.6.1:
 safe-buffer@^5.0.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"
   resolved "http://registry.npm.taobao.org/safe-buffer/download/safe-buffer-5.1.1.tgz#893312af69b2123def71f57889001671eeb2c853"
+
+seed-random@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/seed-random/-/seed-random-2.2.0.tgz#2a9b19e250a817099231a5b99a4daf80b7fbed54"
 
 semver-diff@^2.0.0:
   version "2.1.0"
@@ -2558,6 +2610,10 @@ timed-out@^4.0.0:
   version "4.0.1"
   resolved "http://registry.npm.taobao.org/timed-out/download/timed-out-4.0.1.tgz#f32eacac5a175bea25d7fab565ab3ed8741ef56f"
 
+tiny-emitter@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/tiny-emitter/-/tiny-emitter-2.0.0.tgz#bad327adb1804b42a231afa741532bd884cd09ad"
+
 to-fast-properties@^1.0.3:
   version "1.0.3"
   resolved "http://registry.npm.taobao.org/to-fast-properties/download/to-fast-properties-1.0.3.tgz#b83571fa4d8c25b82e231b06e3a3055de4ca1a47"
@@ -2594,6 +2650,10 @@ type-is@~1.6.1, type-is@~1.6.15:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.15"
+
+typed-function@0.10.6:
+  version "0.10.6"
+  resolved "https://registry.npmjs.org/typed-function/-/typed-function-0.10.6.tgz#314aa0ea72bd586de5920095559683e20b01688b"
 
 uid-number@^0.0.6:
   version "0.0.6"
@@ -2657,9 +2717,9 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "http://registry.npm.taobao.org/utils-merge/download/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
 
-uuid@^3.0.0:
+uuid@^3.0.0, uuid@^3.1.0:
   version "3.1.0"
-  resolved "http://registry.npm.taobao.org/uuid/download/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
+  resolved "https://registry.npmjs.org/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
 
 vary@~1.0.0:
   version "1.0.1"
@@ -2672,6 +2732,10 @@ verror@1.10.0:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
+
+when@~3.1.0:
+  version "3.1.0"
+  resolved "https://registry.npmjs.org/when/-/when-3.1.0.tgz#a2479659ca15f725541ecf52ebae091b781ee134"
 
 which@^1.2.9:
   version "1.3.0"
