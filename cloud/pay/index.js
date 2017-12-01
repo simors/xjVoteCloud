@@ -7,8 +7,14 @@ import mathjs from 'mathjs'
 import Pingpp from 'pingpp'
 import uuidv4 from 'uuid'
 import Promise from 'bluebird'
+import mysqlUtil from '../mysqlUtil'
 
 var pingpp = Pingpp(process.env.PINGPP_API_KEY)
+
+const WALLET_PROCESS_TYPE = {
+  NORMAL_PROCESS: 0,    // 正常状态
+  REFUND_PROCESS: 1,    // 正在提取押金
+}
 
 export async function createPaymentRequest(request) {
   const {currentUser, meta} = request
@@ -97,4 +103,44 @@ export async function handlePaymentWebhootsEvent(request) {
 export async function handleWithdrawWebhootsEvent(request) {
   const {} = request.params
 
+}
+
+
+export async function createUserWallet(userId, openid) {
+  if(!userId) {
+    throw new AV.Cloud.Error('参数错误', {code: errno.EINVAL})
+  }
+  let mysqlConn = undefined
+  try {
+    mysqlConn = await mysqlUtil.getConnection()
+    let sql = "SELECT * FROM `Wallet` WHERE `userId` = ?"
+    let queryRes = await mysqlUtil.query(mysqlConn, sql, [userId])
+    if(queryRes.results.length === 0) {
+      sql = "INSERT INTO `Wallet` (`userId`, `balance`, `password`, `openid`, `user_name`, `process`) VALUES (?, ?, ?, ?, ?, ?)"
+      await mysqlUtil.query(mysqlConn, sql, [userId, 0, '', openid || '', '', WALLET_PROCESS_TYPE.NORMAL_PROCESS])
+      return {
+        userId: userId,
+        balance: 0,
+        openid: '',
+        user_name: '',
+        process: WALLET_PROCESS_TYPE.NORMAL_PROCESS,
+      }
+    } else {
+      throw new AV.Cloud.Error('用户钱包信息已存在', {code: errno.EEXIST})
+    }
+  } catch (error) {
+    console.error("createUserWallet", error)
+    throw error
+  } finally {
+    if (mysqlConn) {
+      await mysqlUtil.release(mysqlConn)
+    }
+  }
+
+}
+
+export async function payFuncTest(request) {
+  const {currentUser, params} = request
+  const {openid} = params
+  return await createUserWallet(currentUser.id, openid)
 }
