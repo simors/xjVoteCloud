@@ -55,7 +55,38 @@ export async function createWithdrawRequest(request) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES})
   }
 
-  const {} = request.params
+  const {amount, channel, metadata, openid} = request.params
+  pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
+
+  try {
+    let transfer = await new Promise((resolve, reject) => {
+      const order_no = uuidv4().replace(/-/g, '').substr(0, 16)
+      pingpp.transfers.create({
+        order_no: order_no,
+        app: {id: process.env.PINGPP_APP_ID},
+        channel: channel,
+        amount: amount,
+        currency: "cny",
+        type: "b2c",
+        recipient: openid, //微信openId
+        extra: {
+          // user_name: username,
+          // force_check: true,
+        },
+        description: "测试" ,
+        metadata: metadata,
+      }, function (err, transfer) {
+        if (err != null ) {
+          console.error(err)
+          reject(new AV.Cloud.Error('request transfer error' + err.message, {code: errno.ERROR_CREATE_TRANSFER}))
+        }
+        resolve(transfer)
+      })
+    })
+    return transfer
+  } catch (e) {
+    throw e
+  }
 }
 
 export async function handlePaymentWebhootsEvent(request) {
