@@ -49,3 +49,13 @@ export async function updateUserInfo(request) {
   let newUser = await currentUser.fetch()
   return constructUser(newUser)
 }
+
+/**
+ * 根据用户id获取用户详情
+ * @param userId
+ */
+export async function getUserInfoById(userId) {
+  let query = new AV.Query('_User')
+  let userInfo = await query.get(userId)
+  return constructUser(userInfo)
+}
