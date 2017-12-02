@@ -148,6 +148,7 @@ export const ERROR_VOTE_WAS_DONE      =   ERROR_BASE_VOTE - 1           // 投�
 // 支付
 export const ERROR_UNSUPPORT_CHANNEL        = (ERROR_BASE_PAY - 1)         /* 不支持的支付渠道 */
 export const ERROR_CREATE_TRANSFER          = (ERROR_BASE_PAY - 2)         /* 创建交易请求失败 */
-export const ERROR_NOT_MATCH_DEPOSIT        = (ERROR_BASE_PAY - 3)         /* 提取押金的金额不匹配 */
-export const ERROR_IN_REFUND_PROCESS        = (ERROR_BASE_PAY - 4)         /* 已经处于提取押金的申请状态 */
-export const ERROR_CREATE_CHARGES           = (ERROR_BASE_PAY - 5)         /* 创建支付请求失败 */
+export const ERROR_CREATE_CHARGES           = (ERROR_BASE_PAY - 3)         /* 创建支付请求失败 */
+export const ERROR_NO_WECHAT                = (ERROR_BASE_PAY - 4)         /* 没有钱包信息     */
+export const ERROR_NOT_ENOUGH_MONEY         = (ERROR_BASE_PAY - 5)         /* 余额不足        */
+export const ERROR_IN_WITHDRAW_PROCESS      = (ERROR_BASE_PAY - 6)         /* 提现处理中      */
