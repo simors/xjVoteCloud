@@ -44,7 +44,7 @@ export async function createPaymentRequest(request) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES})
   }
   const remoteAddress = meta.remoteAddress
-  const {amount, channel, metadata, openid, subject} = request.params
+  const {amount, metadata, openid, subject} = request.params
 
   pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
   try {
@@ -53,7 +53,7 @@ export async function createPaymentRequest(request) {
       pingpp.charges.create({
         order_no: order_no,
         app: {id: process.env.PINGPP_APP_ID},
-        channel: channel,
+        channel: "wx_lite",
         amount: mathjs.chain(amount).multiply(100).done(),
         client_ip: remoteAddress,
         currency: "cny",
@@ -88,7 +88,7 @@ export async function createWithdrawRequest(request) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES})
   }
 
-  const {amount, channel, metadata, openid} = request.params
+  const {amount, metadata, openid} = request.params
   pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
 
   try {
@@ -97,7 +97,7 @@ export async function createWithdrawRequest(request) {
       pingpp.transfers.create({
         order_no: order_no,
         app: {id: process.env.PINGPP_APP_ID},
-        channel: channel,
+        channel: "wx_lite",
         amount: mathjs.chain(amount).multiply(100).done(),
         currency: "cny",
         type: "b2c",
