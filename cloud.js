@@ -1,6 +1,7 @@
 var AV = require('leanengine');
 import * as userCloud from './cloud/user'
 import * as voteCloud from './cloud/vote'
+import * as payCloud from './cloud/pay'
 
 /* 用户 */
 AV.Cloud.define('userUpdateInfo', userCloud.updateUserInfo);
@@ -21,3 +22,10 @@ AV.Cloud.define('voteIncPlayerPv', voteCloud.incPlayerPv);
 AV.Cloud.define('voteFetchRank', voteCloud.fetchVoteRank);
 AV.Cloud.define('voteVoteForPlayer', voteCloud.voteForPlayer);
 AV.Cloud.define('voteGetRuleTemplate', voteCloud.getRuleTemplate);
+
+/* 支付 */
+AV.Cloud.define('payCreatePaymentRequest', payCloud.createPaymentRequest)
+AV.Cloud.define('payCreateWithdrawRequest', payCloud.createWithdrawRequest)
+AV.Cloud.define('payHandlePaymentWebhootsEvent', payCloud.handlePaymentWebhootsEvent)
+AV.Cloud.define('payHandleWithdrawWebhootsEvent', payCloud.handleWithdrawWebhootsEvent)
+AV.Cloud.define('payFuncTest', payCloud.payFuncTest)

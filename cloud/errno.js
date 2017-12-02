@@ -139,7 +139,15 @@ export const EHWPOISON          =   -133;       /* Memory page has hardware erro
 export const ERROR_BASE               =   1000;
 export const ERROR_BASE_USER          =   -(ERROR_BASE);
 export const ERROR_BASE_VOTE          =   -(ERROR_BASE + 1000)
+export const ERROR_BASE_PAY           =   -(ERROR_BASE + 2000)
 
 // 投票
 export const ERROR_VOTE_USE_UP        =   ERROR_BASE_VOTE               // 当天的投票数被用完
 export const ERROR_VOTE_WAS_DONE      =   ERROR_BASE_VOTE - 1           // 投票活动已结束
+
+// 支付
+export const ERROR_UNSUPPORT_CHANNEL        = (ERROR_BASE_PAY - 1)         /* 不支持的支付渠道 */
+export const ERROR_CREATE_TRANSFER          = (ERROR_BASE_PAY - 2)         /* 创建交易请求失败 */
+export const ERROR_NOT_MATCH_DEPOSIT        = (ERROR_BASE_PAY - 3)         /* 提取押金的金额不匹配 */
+export const ERROR_IN_REFUND_PROCESS        = (ERROR_BASE_PAY - 4)         /* 已经处于提取押金的申请状态 */
+export const ERROR_CREATE_CHARGES           = (ERROR_BASE_PAY - 5)         /* 创建支付请求失败 */
