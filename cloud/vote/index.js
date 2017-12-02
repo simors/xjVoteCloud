@@ -386,7 +386,7 @@ export async function fetchVoteById(request) {
  */
 export async function fetchVotes(request) {
   let currentUser = request.currentUser
-  let {searchType, lastTime, limit} = request.params
+  let {searchType, status, orderedBy, lastTime, limit} = request.params
   
   let query = new AV.Query('Votes')
   query.descending('createdAt')
@@ -396,6 +396,16 @@ export async function fetchVotes(request) {
       throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
     }
     query.equalTo('creator', currentUser)
+  }
+
+  if (status) {
+    if (status.constructor !== Array) {
+      status = [status];
+    }
+    query.containedIn('status', status);
+  }
+  if (orderedBy) {
+    query.descending(orderedBy);
   }
   if (lastTime) {
     query.lessThan('createdAt', new Date(lastTime))
