@@ -533,7 +533,7 @@ export async function createPlayerApply(request) {
  * @returns {Array}
  */
 export async function fetchVotePlayers(request) {
-  let {voteId, lastNumber} = request.params
+  let {voteId, lastNumber, limit} = request.params
   
   let vote = AV.Object.createWithoutData('Votes', voteId)
   
@@ -543,6 +543,7 @@ export async function fetchVotePlayers(request) {
   if (lastNumber) {
     query.greaterThan('number', lastNumber)
   }
+  query.limit(limit || 10)
   let leanPlayers = await query.find()
   let players = []
   leanPlayers.forEach((player) => {
