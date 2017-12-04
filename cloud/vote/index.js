@@ -553,6 +553,18 @@ export async function fetchVotePlayers(request) {
 }
 
 /**
+ * 根据参赛选手id获取详情
+ * @param request
+ */
+export async function getPlayerById(request) {
+  let {playerId} = request.params
+  
+  let query = new AV.Query('Player')
+  let player = query.get(playerId)
+  return constructPlayer(player, false, false)
+}
+
+/**
  * 刷新某个参赛选手的热度
  * @param request
  * @returns {*|AV.Promise|Promise<T>}
