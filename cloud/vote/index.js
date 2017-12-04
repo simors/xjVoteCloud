@@ -147,7 +147,7 @@ export async function presentGift(user, playerId, giftId, price, giftNum) {
   giftMap.set('gift', gift)
   giftMap.set('player', player)
   giftMap.set('user', user)
-  giftMap.set('giftNum', giftNum)
+  giftMap.increment('giftNum', giftNum)
   giftMap.set('price', price)
   return await giftMap.save()
 }
