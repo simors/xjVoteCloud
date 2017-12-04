@@ -560,7 +560,7 @@ export async function getPlayerById(request) {
   let {playerId} = request.params
   
   let query = new AV.Query('Player')
-  let player = query.get(playerId)
+  let player = await query.get(playerId)
   return constructPlayer(player, false, false)
 }
 
