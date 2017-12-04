@@ -141,13 +141,15 @@ export async function presentGift(user, playerId, giftId, price, giftNum) {
   let gift = AV.Object.createWithoutData('Gifts', giftId)
   let vote = await getVoteByPlayer(playerId)
   
+  await incPlayerGift(playerId, giftNum)
+  
   let GiftMap = AV.Object.extend('GiftMap')
   let giftMap = new GiftMap()
   giftMap.set('vote', vote)
   giftMap.set('gift', gift)
   giftMap.set('player', player)
   giftMap.set('user', user)
-  giftMap.increment('giftNum', giftNum)
+  giftMap.set('giftNum', giftNum)
   giftMap.set('price', price)
   return await giftMap.save()
 }
@@ -585,6 +587,18 @@ export async function incPlayerPv(request) {
 export async function incPlayerVoteNum(playerId, voteNum) {
   let player = AV.Object.createWithoutData('Player', playerId)
   player.increment('voteNum', voteNum)
+  return await player.save()
+}
+
+/**
+ * 更新某个参赛选手收到的礼品数
+ * @param playerId
+ * @param giftNum
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+async function incPlayerGift(playerId, giftNum) {
+  let player = AV.Object.createWithoutData('Player', playerId)
+  player.increment('giftNum', giftNum)
   return await player.save()
 }
 
