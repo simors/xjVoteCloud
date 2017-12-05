@@ -161,7 +161,7 @@ export async function presentGift(user, playerId, giftId, price, giftNum) {
  * @param request
  */
 export async function listGiftsUnderPlayer(request) {
-  let {playerId, lastTime} = request.params
+  let {playerId, lastTime, limit} = request.params
   
   let player = AV.Object.createWithoutData('Player', playerId)
   let query = new AV.Query('GiftMap')
@@ -171,6 +171,7 @@ export async function listGiftsUnderPlayer(request) {
   }
   query.include(['user', 'player', 'vote', 'gift'])
   query.descending('createdAt')
+  query.limit(limit || 10)
   let giftsList = await query.find()
   let presentGifts = []
   giftsList.forEach((giftMap) => {
