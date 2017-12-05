@@ -21,8 +21,8 @@ const DEAL_TYPE = {
 }
 
 const WALLET_PROCESS_TYPE = {
-  NORMAL_PROCESS: 0,    // 正常状态
-  REFUND_PROCESS: 1,    // 正在提取押金
+  NORMAL_PROCESS: 0,      // 正常状态
+  WITHDRAW_PROCESS: 1,    // 正在提现
 }
 
 const WITHDRAW_STATUS = {
@@ -89,11 +89,13 @@ export async function createWithdrawRequest(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES})
   }
-
   const {amount, metadata, openid} = request.params
   pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
 
+  let mysqlConn = undefined
   try {
+    mysqlConn = await mysqlUtil.getConnection()
+    await updateWalletProcess(mysqlConn, metadata.toUser, WALLET_PROCESS_TYPE.WITHDRAW_PROCESS)
     let transfer = await new Promise((resolve, reject) => {
       const order_no = uuidv4().replace(/-/g, '').substr(0, 16)
       pingpp.transfers.create({
@@ -113,6 +115,7 @@ export async function createWithdrawRequest(request) {
       }, function (err, transfer) {
         if (err != null ) {
           console.error(err)
+          updateWalletProcess(mysqlConn, metadata.toUser, WALLET_PROCESS_TYPE.NORMAL_PROCESS)
           reject(new AV.Cloud.Error('request transfer error' + err.message, {code: errno.ERROR_CREATE_TRANSFER}))
         }
         resolve(transfer)
@@ -120,7 +123,14 @@ export async function createWithdrawRequest(request) {
     })
     return transfer
   } catch (e) {
+    if(mysqlConn) {
+      await mysqlUtil.rollback(mysqlConn)
+    }
     throw e
+  } finally {
+    if(mysqlConn) {
+      await mysqlUtil.release(mysqlConn)
+    }
   }
 }
 
@@ -205,6 +215,7 @@ export async function handleWithdrawWebhootsEvent(request) {
     await addDealRecord(mysqlConn, deal)
     await confirmWithdraw(mysqlConn, operator, withdrawId)
     await updateBalance(mysqlConn, deal)
+    await updateWalletProcess(mysqlConn, toUser, WALLET_PROCESS_TYPE.NORMAL_PROCESS)
     // TODO 增加业务处理逻辑
     await mysqlUtil.commit(mysqlConn)
   } catch (error) {
@@ -290,6 +301,29 @@ export async function getWalletInfo(userId) {
     if (mysqlConn) {
       await mysqlUtil.release(mysqlConn)
     }
+  }
+}
+
+/**
+ * 更新用户钱包状态
+ * @param conn
+ * @param {String} userId
+ * @param {Number} process
+ */
+async function updateWalletProcess(conn, userId, process) {
+  if(!userId || process === undefined) {
+    throw new AV.Cloud.Error('参数错误', {code: errno.EINVAL})
+  }
+
+  try {
+    let sql = "UPDATE `Wallet` SET `process`= ? WHERE `userId`=?"
+    let updateRes = await mysqlUtil.query(conn, sql, [process, userId])
+    if (0 == updateRes.results.changedRows) {
+      throw new AV.Cloud.Error('更新用户钱包状态错误', {code: errno.EIO})
+    }
+    return updateRes.results
+  } catch (error) {
+    throw error
   }
 }
 
@@ -481,6 +515,6 @@ export async function fetchWithdrawRecords(request) {
 
 export async function payFuncTest(request) {
   const {currentUser, params} = request
-  const {openid} = params
-  return await createUserWallet(currentUser.id)
+  const {process} = params
+  return await updateWalletProcess(currentUser.id, process)
 }
