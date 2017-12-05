@@ -435,7 +435,7 @@ export async function fetchGiftsByVote(request) {
   let {voteId} = request.params
   let vote = await getVoteDetailById(voteId, false)
   if (vote.gifts && Array.isArray(vote.gifts)) {
-    return vote.gifts.sort((g1, g2) => g2.price - g1.price)
+    return vote.gifts.sort((g1, g2) => g1.price - g2.price)
   }
   return []
 }
