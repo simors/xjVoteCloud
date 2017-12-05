@@ -14,8 +14,10 @@ import {getUserInfoById} from '../user'
 var pingpp = Pingpp(process.env.PINGPP_API_KEY)
 
 const DEAL_TYPE = {
-  PAYMENT: 1,     // 支付
-  WITHDRAW: 2,    // 提现
+  VOTE_PAY: 1,      // 活动支付
+  RECHARGE: 2,      // 用户充值
+  WITHDRAW: 3,      // 提现
+  BUY_GIFT: 4,      // 购买礼品
 }
 
 const WALLET_PROCESS_TYPE = {

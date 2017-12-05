@@ -12,6 +12,7 @@ const VOTE_STATUS = {
   WAITING: 3,     // 未开始
   STARTING: 4,    // 正在进行
   DONE: 5,        // 已结束
+  ACCOUNTED: 6,   // 已结算
 }
 
 const VOTE_SEARCH_TYPE = {
@@ -58,6 +59,7 @@ function constructVote(leanVote, includeUser) {
   vote.applyNum = voteAttr.applyNum
   vote.voteNum = voteAttr.voteNum
   vote.pv = voteAttr.pv
+  vote.profit = voteAttr.profit
   
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
@@ -140,6 +142,8 @@ export async function presentGift(user, playerId, giftId, price, giftNum) {
   let player = AV.Object.createWithoutData('Player', playerId)
   let gift = AV.Object.createWithoutData('Gifts', giftId)
   let vote = await getVoteByPlayer(playerId)
+  
+  await incPlayerGift(playerId, giftNum)
   
   let GiftMap = AV.Object.extend('GiftMap')
   let giftMap = new GiftMap()
@@ -533,7 +537,7 @@ export async function createPlayerApply(request) {
  * @returns {Array}
  */
 export async function fetchVotePlayers(request) {
-  let {voteId, lastNumber} = request.params
+  let {voteId, lastNumber, limit} = request.params
   
   let vote = AV.Object.createWithoutData('Votes', voteId)
   
@@ -543,12 +547,25 @@ export async function fetchVotePlayers(request) {
   if (lastNumber) {
     query.greaterThan('number', lastNumber)
   }
+  query.limit(limit || 10)
   let leanPlayers = await query.find()
   let players = []
   leanPlayers.forEach((player) => {
     players.push(constructPlayer(player, false, false))
   })
   return players
+}
+
+/**
+ * 根据参赛选手id获取详情
+ * @param request
+ */
+export async function getPlayerById(request) {
+  let {playerId} = request.params
+  
+  let query = new AV.Query('Player')
+  let player = await query.get(playerId)
+  return constructPlayer(player, false, false)
 }
 
 /**
@@ -572,6 +589,18 @@ export async function incPlayerPv(request) {
 export async function incPlayerVoteNum(playerId, voteNum) {
   let player = AV.Object.createWithoutData('Player', playerId)
   player.increment('voteNum', voteNum)
+  return await player.save()
+}
+
+/**
+ * 更新某个参赛选手收到的礼品数
+ * @param playerId
+ * @param giftNum
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+async function incPlayerGift(playerId, giftNum) {
+  let player = AV.Object.createWithoutData('Player', playerId)
+  player.increment('giftNum', giftNum)
   return await player.save()
 }
 
@@ -660,7 +689,7 @@ export async function voteForPlayer(request) {
   
   let player = AV.Object.createWithoutData('Player', playerId)
   let vote = await getVoteByPlayer(playerId)
-  if (vote.attributes.status == VOTE_STATUS.DONE) {
+  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
     throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
   }
   
@@ -691,4 +720,16 @@ export async function getRuleTemplate(request) {
     return result.attributes.content
   }
   return ''
+}
+
+/**
+ * 更新投票活动的利润
+ * @param voteId
+ * @param profit
+ * @returns {Promise<T>|*|AV.Promise}
+ */
+export async function incVoteProfit(voteId, profit) {
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.increment('profit', profit)
+  return await vote.save()
 }
