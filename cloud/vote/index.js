@@ -12,6 +12,7 @@ const VOTE_STATUS = {
   WAITING: 3,     // 未开始
   STARTING: 4,    // 正在进行
   DONE: 5,        // 已结束
+  ACCOUNTED: 6,   // 已结算
 }
 
 const VOTE_SEARCH_TYPE = {
@@ -58,6 +59,7 @@ function constructVote(leanVote, includeUser) {
   vote.applyNum = voteAttr.applyNum
   vote.voteNum = voteAttr.voteNum
   vote.pv = voteAttr.pv
+  vote.profit = voteAttr.profit
   
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
@@ -687,7 +689,7 @@ export async function voteForPlayer(request) {
   
   let player = AV.Object.createWithoutData('Player', playerId)
   let vote = await getVoteByPlayer(playerId)
-  if (vote.attributes.status == VOTE_STATUS.DONE) {
+  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
     throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
   }
   
@@ -718,4 +720,16 @@ export async function getRuleTemplate(request) {
     return result.attributes.content
   }
   return ''
+}
+
+/**
+ * 更新投票活动的利润
+ * @param voteId
+ * @param profit
+ * @returns {Promise<T>|*|AV.Promise}
+ */
+export async function incVoteProfit(voteId, profit) {
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.increment('profit', profit)
+  return await vote.save()
 }
