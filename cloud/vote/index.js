@@ -131,16 +131,17 @@ export async function fetchGifts(request) {
 
 /**
  * 赠送某个礼物，在用户成功支付后，由支付接口调用
- * @param user
+ * @param userId
  * @param playerId
  * @param giftId
  * @param price
  * @param giftNum
  * @returns {*}
  */
-export async function presentGift(user, playerId, giftId, price, giftNum) {
+export async function presentGift(userId, playerId, giftId, price, giftNum) {
   let player = AV.Object.createWithoutData('Player', playerId)
   let gift = AV.Object.createWithoutData('Gifts', giftId)
+  let user = AV.Object.createWithoutData('_User', userId)
   let vote = await getVoteByPlayer(playerId)
   
   await incPlayerGift(playerId, giftNum)

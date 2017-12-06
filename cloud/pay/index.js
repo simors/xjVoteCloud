@@ -10,6 +10,7 @@ import Promise from 'bluebird'
 import moment from 'moment'
 import mysqlUtil from '../mysqlUtil'
 import {getUserInfoById} from '../user'
+import {presentGift} from '../vote'
 
 var pingpp = Pingpp(process.env.PINGPP_API_KEY)
 
@@ -167,6 +168,16 @@ export async function handlePaymentWebhootsEvent(request) {
     await mysqlUtil.beginTransaction(mysqlConn)
     await addDealRecord(mysqlConn, deal)
     // TODO 增加业务处理逻辑
+    switch (dealType) {
+      case DEAL_TYPE.RECHARGE:
+        break
+      case DEAL_TYPE.BUY_GIFT:
+        let metadata = charge.metadata
+        await presentGift(fromUser, metadata.playerId, metadata.giftId, amount, metadata.giftNum)
+        break
+      default:
+        console.error('unsupported deal type!')
+    }
     await mysqlUtil.commit(mysqlConn)
   } catch (error) {
     if(mysqlConn) {
