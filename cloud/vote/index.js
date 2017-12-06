@@ -6,7 +6,7 @@ import * as errno from '../errno'
 import moment from 'moment'
 import {constructUser} from '../user'
 
-const VOTE_STATUS = {
+export const VOTE_STATUS = {
   EDITING: 1,     // 正在编辑
   PAYING: 2,      // 待支付
   WAITING: 3,     // 未开始
@@ -449,6 +449,10 @@ export async function fetchGiftsByVote(request) {
  * @returns {*|AV.Promise|Promise<T>}
  */
 export async function updateVoteStatus(voteId, status) {
+  if (!voteId) {
+    console.error('input error!')
+    return undefined
+  }
   let vote = AV.Object.createWithoutData('Votes', voteId)
   vote.set('status', status)
   return await vote.save()

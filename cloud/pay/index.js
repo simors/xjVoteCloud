@@ -10,7 +10,7 @@ import Promise from 'bluebird'
 import moment from 'moment'
 import mysqlUtil from '../mysqlUtil'
 import {getUserInfoById} from '../user'
-import {presentGift, incVoteProfit} from '../vote'
+import {VOTE_STATUS, presentGift, incVoteProfit, updateVoteStatus} from '../vote'
 
 var pingpp = Pingpp(process.env.PINGPP_API_KEY)
 
@@ -403,7 +403,7 @@ async function addDealRecord(conn, deal) {
   var channel = deal.channel || ''
   var transaction_no = deal.transaction_no || ''
   var feeAmount = deal.feeAmount || 0
-  let promotionId = deal.metadata? deal.metadata.promotionId : undefined
+  let promotionId = deal.metadata && deal.metadata.promotionId ? deal.metadata.promotionId : undefined
   var recordSql = 'INSERT INTO `DealRecords` (`from`, `to`, `cost`, `deal_type`, `charge_id`, `order_no`, `channel`, `transaction_no`, `fee`, `promotion_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   return mysqlUtil.query(conn, recordSql, [deal.from, deal.to, deal.cost, deal.deal_type, charge_id, order_no, channel, transaction_no, feeAmount, promotionId || ''])
 }
@@ -571,7 +571,7 @@ export async function payWithWalletBalance(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {amount} = request.params
+  let {amount, dealType, metadata} = request.params
   let wallet = await getWalletInfo(currentUser.id)
   if (wallet.balance < amount) {
     throw new AV.Cloud.Error('Not enough balance in wallet', {code: errno.ERROR_NOT_ENOUGH_MONEY});
@@ -580,14 +580,14 @@ export async function payWithWalletBalance(request) {
     from: currentUser.id,
     to: 'platform',
     cost: amount,
-    deal_type: DEAL_TYPE.VOTE_PAY,
+    deal_type: dealType,
     charge_id: '',
     order_no: uuidv4().replace(/-/g, '').substr(0, 16),
     channel: '',
     transaction_no: '',
     openid: '',
     payTime: Date.now(),
-    metadata: {},
+    metadata: metadata,
   }
   let mysqlConn = undefined
   try {
@@ -595,6 +595,13 @@ export async function payWithWalletBalance(request) {
     await mysqlUtil.beginTransaction(mysqlConn)
     await addDealRecord(mysqlConn, deal)
     await updateBalance(mysqlConn, currentUser.id, amount, WALLET_OPER.MINUS)
+    switch (dealType) {
+      case DEAL_TYPE.VOTE_PAY:
+        await updateVoteStatus(metadata.voteId, VOTE_STATUS.WAITING)
+        break
+      default:
+        console.error('Unsupported deal type!')
+    }
     await mysqlUtil.commit(mysqlConn)
   } catch (error) {
     if(mysqlConn) {
