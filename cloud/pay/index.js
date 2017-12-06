@@ -178,10 +178,9 @@ export async function handlePaymentWebhootsEvent(request) {
     mysqlConn = await mysqlUtil.getConnection()
     await mysqlUtil.beginTransaction(mysqlConn)
     await addDealRecord(mysqlConn, deal)
-    // TODO 增加业务处理逻辑
     switch (dealType) {
       case DEAL_TYPE.RECHARGE:
-        await updateBalance(mysqlConn, deal, WALLET_OPER.INCREMENT)
+        await updateBalance(mysqlConn, deal.to, deal.cost, WALLET_OPER.INCREMENT)
         break
       case DEAL_TYPE.BUY_GIFT:
         let metadata = charge.metadata
@@ -238,7 +237,7 @@ export async function handleWithdrawWebhootsEvent(request) {
     await mysqlUtil.beginTransaction(mysqlConn)
     await addDealRecord(mysqlConn, deal)
     await confirmWithdraw(mysqlConn, operator, withdrawId)
-    await updateBalance(mysqlConn, deal, WALLET_OPER.MINUS)
+    await updateBalance(mysqlConn, deal.to, deal.cost, WALLET_OPER.MINUS)
     await updateWalletProcess(mysqlConn, toUser, WALLET_PROCESS_TYPE.NORMAL_PROCESS)
     // TODO 增加业务处理逻辑
     await mysqlUtil.commit(mysqlConn)
@@ -367,10 +366,11 @@ async function updateWalletProcess(conn, userId, process) {
 /**
  * 更新用户余额
  * @param conn
- * @param deal
+ * @param userId
+ * @param cost
  * @param type    操作的类型，取值为WALLET_OPER
  */
-async function updateBalance(conn, deal, type) {
+async function updateBalance(conn, userId, cost, type) {
   try {
     let sql = ""
     if (type === WALLET_OPER.INCREMENT) {
@@ -378,7 +378,7 @@ async function updateBalance(conn, deal, type) {
     } else if (type === WALLET_OPER.MINUS) {
       sql = "UPDATE `Wallet` SET `balance`= `balance` - ? WHERE `userId`=?"
     }
-    let updateRes = await mysqlUtil.query(conn, sql, [Number(deal.cost), deal.to])
+    let updateRes = await mysqlUtil.query(conn, sql, [Number(cost), userId])
     if (0 == updateRes.results.changedRows) {
       throw new AV.Cloud.Error('修改余额出现错误', {code: errno.EIO})
     }
@@ -560,4 +560,50 @@ export async function payFuncTest(request) {
   const {currentUser, params} = request
   const {process} = params
   return await updateWalletProcess(currentUser.id, process)
+}
+
+/**
+ * 使用账户余额完成支付
+ * @param request
+ */
+export async function payWithWalletBalance(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {amount} = request.params
+  let wallet = await getWalletInfo(currentUser.id)
+  if (wallet.balance < amount) {
+    throw new AV.Cloud.Error('Not enough balance in wallet', {code: errno.ERROR_NOT_ENOUGH_MONEY});
+  }
+  const deal = {
+    from: currentUser.id,
+    to: 'platform',
+    cost: amount,
+    deal_type: DEAL_TYPE.VOTE_PAY,
+    charge_id: '',
+    order_no: uuidv4().replace(/-/g, '').substr(0, 16),
+    channel: '',
+    transaction_no: '',
+    openid: '',
+    payTime: Date.now(),
+    metadata: {},
+  }
+  let mysqlConn = undefined
+  try {
+    mysqlConn = await mysqlUtil.getConnection()
+    await mysqlUtil.beginTransaction(mysqlConn)
+    await addDealRecord(mysqlConn, deal)
+    await updateBalance(mysqlConn, currentUser.id, amount, WALLET_OPER.MINUS)
+    await mysqlUtil.commit(mysqlConn)
+  } catch (error) {
+    if(mysqlConn) {
+      await mysqlUtil.rollback(mysqlConn)
+    }
+    throw error
+  } finally {
+    if(mysqlConn) {
+      await mysqlUtil.release(mysqlConn)
+    }
+  }
 }
