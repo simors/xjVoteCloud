@@ -32,3 +32,4 @@ AV.Cloud.define('payHandleWithdrawWebhootsEvent', payCloud.handleWithdrawWebhoot
 AV.Cloud.define('payCreateWithdrawApply', payCloud.createWithdrawApply)
 AV.Cloud.define('payFetchWithdrawRecords', payCloud.fetchWithdrawRecords)
 AV.Cloud.define('payFuncTest', payCloud.payFuncTest)
+AV.Cloud.define('payGetWalletInfo', payCloud.reqWalletInfo)

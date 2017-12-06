@@ -321,6 +321,19 @@ export async function getWalletInfo(userId) {
 }
 
 /**
+ * 获取用户钱包信息的网络请求接口
+ * @param request
+ * @returns {*}
+ */
+export async function reqWalletInfo(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  return await getWalletInfo(currentUser.id)
+}
+
+/**
  * 更新用户钱包状态
  * @param conn
  * @param {String} userId
