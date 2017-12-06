@@ -27,8 +27,8 @@ function constructGift(leanAward) {
   }
   let awardAttr = leanAward.attributes
   award.id = leanAward.id
-  award.createdAt = leanAward.createdAt
-  award.updatedAt = leanAward.updatedAt
+  award.createdAt = moment(new Date(leanAward.createdAt)).format('YYYY-MM-DD HH:mm:ss')
+  award.updatedAt = moment(new Date(leanAward.updatedAt)).format('YYYY-MM-DD HH:mm:ss')
   award.name = awardAttr.name
   award.ballot = awardAttr.ballot
   award.photo = awardAttr.photo
@@ -43,8 +43,8 @@ function constructVote(leanVote, includeUser) {
   }
   let voteAttr = leanVote.attributes
   vote.id = leanVote.id
-  vote.createdAt = leanVote.createdAt
-  vote.updatedAt = leanVote.updatedAt
+  vote.createdAt = moment(new Date(leanVote.createdAt)).format('YYYY-MM-DD HH:mm:ss')
+  vote.updatedAt = moment(new Date(leanVote.updatedAt)).format('YYYY-MM-DD HH:mm:ss')
   vote.creatorId = voteAttr.creator ? voteAttr.creator.id : undefined
   vote.title = voteAttr.title
   vote.cover = voteAttr.cover
@@ -74,8 +74,8 @@ function constructPlayer(leanPlayer, includeUser, includeVote) {
   }
   let playerAttr = leanPlayer.attributes
   player.id = leanPlayer.id
-  player.createdAt = leanPlayer.createdAt
-  player.updatedAt = leanPlayer.updatedAt
+  player.createdAt = moment(new Date(leanPlayer.createdAt)).format('YYYY-MM-DD HH:mm:ss')
+  player.updatedAt = moment(new Date(leanPlayer.updatedAt)).format('YYYY-MM-DD HH:mm:ss')
   player.number = playerAttr.number
   player.name = playerAttr.name
   player.declaration = playerAttr.declaration
@@ -102,8 +102,8 @@ function constructGiftMap(leanGiftMap) {
   }
   let giftMapAttr = leanGiftMap.attributes
   giftMap.id = leanGiftMap.id
-  giftMap.createdAt = leanGiftMap.createdAt
-  giftMap.updatedAt = leanGiftMap.updatedAt
+  giftMap.createdAt = moment(new Date(leanGiftMap.createdAt)).format('YYYY-MM-DD HH:mm:ss')
+  giftMap.updatedAt = moment(new Date(leanGiftMap.updatedAt)).format('YYYY-MM-DD HH:mm:ss')
   giftMap.giftNum = giftMapAttr.giftNum
   giftMap.price = giftMapAttr.price
   giftMap.vote = constructVote(giftMapAttr.vote, false)
@@ -161,7 +161,7 @@ export async function presentGift(user, playerId, giftId, price, giftNum) {
  * @param request
  */
 export async function listGiftsUnderPlayer(request) {
-  let {playerId, lastTime} = request.params
+  let {playerId, lastTime, limit} = request.params
   
   let player = AV.Object.createWithoutData('Player', playerId)
   let query = new AV.Query('GiftMap')
@@ -171,6 +171,7 @@ export async function listGiftsUnderPlayer(request) {
   }
   query.include(['user', 'player', 'vote', 'gift'])
   query.descending('createdAt')
+  query.limit(limit || 10)
   let giftsList = await query.find()
   let presentGifts = []
   giftsList.forEach((giftMap) => {
@@ -435,7 +436,7 @@ export async function fetchGiftsByVote(request) {
   let {voteId} = request.params
   let vote = await getVoteDetailById(voteId, false)
   if (vote.gifts && Array.isArray(vote.gifts)) {
-    return vote.gifts
+    return vote.gifts.sort((g1, g2) => g1.price - g2.price)
   }
   return []
 }
