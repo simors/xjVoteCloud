@@ -10,7 +10,7 @@ import Promise from 'bluebird'
 import moment from 'moment'
 import mysqlUtil from '../mysqlUtil'
 import {getUserInfoById} from '../user'
-import {presentGift} from '../vote'
+import {presentGift, incVoteProfit} from '../vote'
 
 var pingpp = Pingpp(process.env.PINGPP_API_KEY)
 
@@ -19,6 +19,12 @@ const DEAL_TYPE = {
   RECHARGE: 2,      // 用户充值
   WITHDRAW: 3,      // 提现
   BUY_GIFT: 4,      // 购买礼品
+}
+
+// 钱包余额操作类型
+const WALLET_OPER = {
+  INCREMENT: 1,     // 增加用户余额
+  MINUS: 2          // 减少用户余额
 }
 
 const WALLET_PROCESS_TYPE = {
@@ -175,10 +181,12 @@ export async function handlePaymentWebhootsEvent(request) {
     // TODO 增加业务处理逻辑
     switch (dealType) {
       case DEAL_TYPE.RECHARGE:
+        await updateBalance(mysqlConn, deal, WALLET_OPER.INCREMENT)
         break
       case DEAL_TYPE.BUY_GIFT:
         let metadata = charge.metadata
         await presentGift(fromUser, metadata.playerId, metadata.giftId, amount, metadata.giftNum)
+        await incVoteProfit(metadata.voteId, amount)
         break
       default:
         console.error('unsupported deal type!')
@@ -230,7 +238,7 @@ export async function handleWithdrawWebhootsEvent(request) {
     await mysqlUtil.beginTransaction(mysqlConn)
     await addDealRecord(mysqlConn, deal)
     await confirmWithdraw(mysqlConn, operator, withdrawId)
-    await updateBalance(mysqlConn, deal)
+    await updateBalance(mysqlConn, deal, WALLET_OPER.MINUS)
     await updateWalletProcess(mysqlConn, toUser, WALLET_PROCESS_TYPE.NORMAL_PROCESS)
     // TODO 增加业务处理逻辑
     await mysqlUtil.commit(mysqlConn)
@@ -360,10 +368,16 @@ async function updateWalletProcess(conn, userId, process) {
  * 更新用户余额
  * @param conn
  * @param deal
+ * @param type    操作的类型，取值为WALLET_OPER
  */
-async function updateBalance(conn, deal) {
+async function updateBalance(conn, deal, type) {
   try {
-    let sql = "UPDATE `Wallet` SET `balance`= `balance` - ? WHERE `userId`=?"
+    let sql = ""
+    if (type === WALLET_OPER.INCREMENT) {
+      sql = "UPDATE `Wallet` SET `balance`= `balance` + ? WHERE `userId`=?"
+    } else if (type === WALLET_OPER.MINUS) {
+      sql = "UPDATE `Wallet` SET `balance`= `balance` - ? WHERE `userId`=?"
+    }
     let updateRes = await mysqlUtil.query(conn, sql, [Number(deal.cost), deal.to])
     if (0 == updateRes.results.changedRows) {
       throw new AV.Cloud.Error('修改余额出现错误', {code: errno.EIO})
