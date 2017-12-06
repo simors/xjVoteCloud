@@ -93,6 +93,11 @@ export async function createWithdrawRequest(request) {
   const {amount, metadata, openid} = request.params
   pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
 
+  let walletInfo = await getWalletInfo(currentUser.id)
+  if(walletInfo.process != WALLET_PROCESS_TYPE.NORMAL_PROCESS) {
+    throw new AV.Cloud.Error('提现处理中', {code: errno.ERROR_IN_WITHDRAW_PROCESS})
+  }
+
   let mysqlConn = undefined
   try {
     mysqlConn = await mysqlUtil.getConnection()
