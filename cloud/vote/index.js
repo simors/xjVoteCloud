@@ -4,7 +4,9 @@
 import AV from 'leanengine'
 import * as errno from '../errno'
 import moment from 'moment'
+import math from 'mathjs'
 import {constructUser} from '../user'
+import {saveVoteProfit} from '../pay'
 
 export const VOTE_STATUS = {
   EDITING: 1,     // 正在编辑
@@ -738,4 +740,54 @@ export async function incVoteProfit(voteId, profit) {
   let vote = AV.Object.createWithoutData('Votes', voteId)
   vote.increment('profit', profit)
   return await vote.save()
+}
+
+/**
+ * 根据日期遍历获取所有已结束的投票活动
+ * @param lastDate
+ * @returns {*|Promise|Promise<T>}
+ */
+async function fetchVotesOrderByDate(lastDate) {
+  let query = new AV.Query('Votes')
+  query.equalTo('status', VOTE_STATUS.DONE)
+  if (lastDate) {
+    query.lessThan('createdAt', new Date(lastDate))
+  }
+  query.descending('createdAt')
+  query.limit(1000)
+  return await query.find()
+}
+
+/**
+ * 执行收益结算
+ */
+export async function runVoteProfitAccount() {
+  let lastDate = undefined
+  let votes = await fetchVotesOrderByDate()
+  while (1) {
+    if (votes.length === 0) {
+      break
+    }
+    for (let vote of votes) {
+      let voteAttr = vote.attributes
+      if (!voteAttr.profit || !voteAttr.creator || !voteAttr.creator.id) {
+        continue
+      }
+      let profit = voteAttr.profit
+      let creator = voteAttr.creator.id
+      let creatorProfit = math.round(math.chain(profit).multiply(0.7).done(), 2)
+      try {
+        await saveVoteProfit(creatorProfit, creator)
+        await updateVoteStatus(vote.id, VOTE_STATUS.ACCOUNTED)
+      } catch (e) {
+        console.error('error in statistics vote profit with voteId', vote.id, e)
+      }
+    }
+    lastDate = votes[votes.length - 1].createdAt
+    if (votes.length < 1000) {
+      votes = await fetchVotesOrderByDate(lastDate)
+    } else {
+      break
+    }
+  }
 }

@@ -671,3 +671,42 @@ export async function fetchUserDealRecords(request) {
     }
   }
 }
+
+/**
+ * 保存投票活动中活动创建者的收益
+ * @param profit
+ * @param creator
+ * @returns {Array}
+ */
+export async function saveVoteProfit(profit, creator) {
+  const deal = {
+    from: 'platform',
+    to: creator,
+    cost: profit,
+    deal_type: DEAL_TYPE.VOTE_PROFIT,
+    charge_id: '',
+    order_no: uuidv4().replace(/-/g, '').substr(0, 16),
+    channel: '',
+    transaction_no: '',
+    openid: '',
+    payTime: Date.now(),
+    metadata: {},
+  }
+  let mysqlConn = undefined
+  try {
+    mysqlConn = await mysqlUtil.getConnection()
+    await mysqlUtil.beginTransaction(mysqlConn)
+    await addDealRecord(mysqlConn, deal)
+    await updateBalance(mysqlConn, creator, profit, WALLET_OPER.INCREMENT)
+    await mysqlUtil.commit(mysqlConn)
+  } catch (error) {
+    if(mysqlConn) {
+      await mysqlUtil.rollback(mysqlConn)
+    }
+    throw error
+  } finally {
+    if(mysqlConn) {
+      await mysqlUtil.release(mysqlConn)
+    }
+  }
+}
