@@ -131,7 +131,7 @@ export const ENOKEY             =   -126;       /* Required key not available */
 export const EKEYEXPIRED        =   -127;       /* Key has expired */
 export const EKEYREVOKED        =   -128;       /* Key has been revoked */
 export const EKEYREJECTED       =   -129;       /* Key was rejected by service */
-export const EOWNERDEAD         =   -130;       /* Owner died */export const ERROR_INNER_PROCESS            = (ERROR_BASE_PAY - 7)         /* 支付内部异常      */
+export const EOWNERDEAD         =   -130;       /* Owner died */
 export const ENOTRECOVERABLE    =   -131;       /* State not recoverable */
 export const ERFKILL            =   -132;       /* Operation not possible due to RF-kill */
 export const EHWPOISON          =   -133;       /* Memory page has hardware error */
@@ -152,3 +152,4 @@ export const ERROR_CREATE_CHARGES           = (ERROR_BASE_PAY - 3)         /* �
 export const ERROR_NO_WECHAT                = (ERROR_BASE_PAY - 4)         /* 没有钱包信息     */
 export const ERROR_NOT_ENOUGH_MONEY         = (ERROR_BASE_PAY - 5)         /* 余额不足        */
 export const ERROR_IN_WITHDRAW_PROCESS      = (ERROR_BASE_PAY - 6)         /* 提现处理中      */
+export const ERROR_PAY_INNER_PROCESS        = (ERROR_BASE_PAY - 7)         /* 支付内部异常      */
