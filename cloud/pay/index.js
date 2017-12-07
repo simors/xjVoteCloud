@@ -42,6 +42,23 @@ const WITHDRAW_APPLY_TYPE = {
   PROFIT: 2,        // 服务单位和投资人申请收益取现
 }
 
+function constructDealRecord(dealRecord) {
+  let deal = {}
+  deal.id = dealRecord.id
+  deal.from = dealRecord.from
+  deal.to = dealRecord.to
+  deal.cost = dealRecord.cost
+  deal.chargeId = dealRecord.charge_id
+  deal.orderNo = dealRecord.order_no
+  deal.channel = dealRecord.channel
+  deal.transactionNo = dealRecord.transaction_no
+  deal.dealTime = moment(new Date(dealRecord.deal_time)).format('YYYY-MM-DD HH:mm:ss')
+  deal.dealType = dealRecord.deal_type
+  deal.fee = dealRecord.fee
+  deal.promotionId = dealRecord.promotion_id
+  return deal
+}
+
 /**
  * 创建ping++支付请求
  * @param request
@@ -608,6 +625,45 @@ export async function payWithWalletBalance(request) {
       await mysqlUtil.rollback(mysqlConn)
     }
     throw new AV.Cloud.Error('pay with balance error', {code: errno.ERROR_PAY_INNER_PROCESS});
+  } finally {
+    if(mysqlConn) {
+      await mysqlUtil.release(mysqlConn)
+    }
+  }
+}
+
+/**
+ * 获取用户所有交易记录
+ * @param request
+ */
+export async function fetchUserDealRecords(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {lastTime, limit} = request.params
+  
+  let mysqlConn = undefined
+  let userId = currentUser.id
+  let fetchLimit = limit || 10
+  let sqlParams = [userId, userId]
+  try {
+    mysqlConn = await mysqlUtil.getConnection()
+    let sql = "SELECT * FROM `DealRecords` WHERE (`from` = ? OR `to` = ?) "
+    if (lastTime) {
+      sql += ' AND deal_time < ? '
+      sqlParams.push(lastTime)
+    }
+    sql += 'ORDER BY `deal_time` DESC LIMIT ?'
+    sqlParams.push(fetchLimit)
+    let queryRes = await mysqlUtil.query(mysqlConn, sql, sqlParams)
+    let deals = []
+    queryRes.results.forEach((deal) => {
+      deals.push(constructDealRecord(deal))
+    })
+    return deals
+  } catch (error) {
+    throw new AV.Cloud.Error('query user deal records error', {code: errno.EIO});
   } finally {
     if(mysqlConn) {
       await mysqlUtil.release(mysqlConn)
