@@ -607,7 +607,7 @@ export async function payWithWalletBalance(request) {
     if(mysqlConn) {
       await mysqlUtil.rollback(mysqlConn)
     }
-    throw error
+    throw new AV.Cloud.Error('pay with balance error', {code: errno.ERROR_INNER_PROCESS});
   } finally {
     if(mysqlConn) {
       await mysqlUtil.release(mysqlConn)

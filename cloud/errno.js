@@ -131,7 +131,7 @@ export const ENOKEY             =   -126;       /* Required key not available */
 export const EKEYEXPIRED        =   -127;       /* Key has expired */
 export const EKEYREVOKED        =   -128;       /* Key has been revoked */
 export const EKEYREJECTED       =   -129;       /* Key was rejected by service */
-export const EOWNERDEAD         =   -130;       /* Owner died */
+export const EOWNERDEAD         =   -130;       /* Owner died */export const ERROR_INNER_PROCESS            = (ERROR_BASE_PAY - 7)         /* 支付内部异常      */
 export const ENOTRECOVERABLE    =   -131;       /* State not recoverable */
 export const ERFKILL            =   -132;       /* Operation not possible due to RF-kill */
 export const EHWPOISON          =   -133;       /* Memory page has hardware error */
