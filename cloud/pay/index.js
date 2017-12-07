@@ -19,6 +19,7 @@ const DEAL_TYPE = {
   RECHARGE: 2,      // 用户充值
   WITHDRAW: 3,      // 提现
   BUY_GIFT: 4,      // 购买礼品
+  VOTE_PROFIT: 5,   // 活动收益
 }
 
 // 钱包余额操作类型
