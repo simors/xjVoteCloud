@@ -23,6 +23,7 @@ AV.Cloud.define('voteIncPlayerPv', voteCloud.incPlayerPv);
 AV.Cloud.define('voteFetchRank', voteCloud.fetchVoteRank);
 AV.Cloud.define('voteVoteForPlayer', voteCloud.voteForPlayer);
 AV.Cloud.define('voteGetRuleTemplate', voteCloud.getRuleTemplate);
+AV.Cloud.define('voteRunProfitAccount', voteCloud.runVoteProfitAccount);
 
 /* 支付 */
 AV.Cloud.define('payCreatePaymentRequest', payCloud.createPaymentRequest)

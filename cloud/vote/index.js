@@ -761,7 +761,7 @@ async function fetchVotesOrderByDate(lastDate) {
 /**
  * 执行收益结算
  */
-export async function runVoteProfitAccount() {
+export async function runVoteProfitAccount(request) {
   let lastDate = undefined
   let votes = await fetchVotesOrderByDate()
   while (1) {
