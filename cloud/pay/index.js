@@ -508,6 +508,30 @@ async function isWithdrawApplying(conn, userId) {
   }
 }
 
+export async function getUserLastWithdrawApply(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let userId = currentUser.id
+  let conn = undefined
+  try {
+    conn = await mysqlUtil.getConnection()
+    let sql = 'SELECT * FROM `WithdrawApply` WHERE status=? AND `userId`=?'
+    let queryRes = await mysqlUtil.query(conn, sql, [WITHDRAW_STATUS.APPLYING, userId])
+    if(0 === queryRes.results.length) {
+      return undefined
+    }
+    return queryRes.results[0]
+  } catch (e) {
+    throw e
+  } finally {
+    if (conn) {
+      await mysqlUtil.release(conn)
+    }
+  }
+}
+
 /**
  * 获取取现记录列表
  * @param request
