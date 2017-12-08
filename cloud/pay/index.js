@@ -39,8 +39,7 @@ const WITHDRAW_STATUS = {
 }
 
 const WITHDRAW_APPLY_TYPE = {
-  REFUND: 1,        // 微信端用户申请退还押金
-  PROFIT: 2,        // 服务单位和投资人申请收益取现
+  PROFIT: 1,        // 服务单位和投资人申请收益取现
 }
 
 function constructDealRecord(dealRecord) {
