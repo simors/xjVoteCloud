@@ -192,15 +192,18 @@ export async function handlePaymentWebhootsEvent(request) {
 
   let mysqlConn = undefined
   try {
+    let metadata = charge.metadata
     mysqlConn = await mysqlUtil.getConnection()
     await mysqlUtil.beginTransaction(mysqlConn)
     await addDealRecord(mysqlConn, deal)
     switch (dealType) {
+      case DEAL_TYPE.VOTE_PAY:
+        await updateVoteStatus(metadata.voteId, VOTE_STATUS.WAITING)
+        break
       case DEAL_TYPE.RECHARGE:
         await updateBalance(mysqlConn, deal.to, deal.cost, WALLET_OPER.INCREMENT)
         break
       case DEAL_TYPE.BUY_GIFT:
-        let metadata = charge.metadata
         await presentGift(fromUser, metadata.playerId, metadata.giftId, amount, metadata.giftNum)
         await incVoteProfit(metadata.voteId, amount)
         break
