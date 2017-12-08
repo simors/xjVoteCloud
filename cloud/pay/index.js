@@ -497,7 +497,7 @@ async function confirmWithdraw(conn, operator, orderId) {
  */
 async function isWithdrawApplying(conn, userId) {
   try {
-    let sql = 'SELECT * FROM `WithdrawApply` WHERE applyType=? AND `userId`=?'
+    let sql = 'SELECT * FROM `WithdrawApply` WHERE status=? AND `userId`=?'
     let queryRes = await mysqlUtil.query(conn, sql, [WITHDRAW_STATUS.APPLYING, userId])
     if(0 === queryRes.results.length) {
       return false
