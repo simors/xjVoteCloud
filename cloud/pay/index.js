@@ -204,7 +204,7 @@ export async function handlePaymentWebhootsEvent(request) {
         await updateBalance(mysqlConn, deal.to, deal.cost, WALLET_OPER.INCREMENT)
         break
       case DEAL_TYPE.BUY_GIFT:
-        await presentGift(fromUser, metadata.playerId, metadata.giftId, amount, metadata.giftNum)
+        await presentGift(fromUser, metadata.playerId, metadata.giftId, amount, metadata.giftNum, metadata.ballot)
         await incVoteProfit(metadata.voteId, amount)
         break
       default:

@@ -138,15 +138,17 @@ export async function fetchGifts(request) {
  * @param giftId
  * @param price
  * @param giftNum
+ * @param ballot
  * @returns {*}
  */
-export async function presentGift(userId, playerId, giftId, price, giftNum) {
+export async function presentGift(userId, playerId, giftId, price, giftNum, ballot) {
   let player = AV.Object.createWithoutData('Player', playerId)
   let gift = AV.Object.createWithoutData('Gifts', giftId)
   let user = AV.Object.createWithoutData('_User', userId)
   let vote = await getVoteByPlayer(playerId)
   
   await incPlayerGift(playerId, giftNum)
+  await incPlayerVoteNum(playerId, ballot)
   
   let GiftMap = AV.Object.extend('GiftMap')
   let giftMap = new GiftMap()
