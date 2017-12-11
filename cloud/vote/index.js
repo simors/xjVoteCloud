@@ -149,6 +149,7 @@ export async function presentGift(userId, playerId, giftId, price, giftNum, ball
   
   await incPlayerGift(playerId, giftNum)
   await incPlayerVoteNum(playerId, ballot)
+  await incVoteNum(vote.id, ballot)
   
   let GiftMap = AV.Object.extend('GiftMap')
   let giftMap = new GiftMap()
