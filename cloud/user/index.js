@@ -4,6 +4,12 @@
 import AV from 'leanengine'
 import * as errno from '../errno'
 
+const AGENT_LEVEL = {
+  LEVEL_ONE: 1,
+  LEVEL_TWO: 2,
+  LEVEL_THREE: 3
+}
+
 export function constructUser(leanUser) {
   let user = {}
   if (!leanUser) {
@@ -23,6 +29,7 @@ export function constructUser(leanUser) {
   user.agentLevel = leanUserAttr.agentLevel
   user.royalty = leanUserAttr.royalty
   user.inviterId = leanUserAttr.inviter ? leanUserAttr.inviter.id : undefined
+  user.friendsNum = leanUserAttr.friendsNum
   return user
 }
 
@@ -61,4 +68,53 @@ export async function getUserInfoById(userId) {
   let query = new AV.Query('_User')
   let userInfo = await query.get(userId)
   return constructUser(userInfo)
+}
+
+/**
+ * 判断用户代理级别是否需要升级
+ * @param userId
+ * @returns {*}
+ */
+async function agentLevelUpgrade(userId) {
+  let user = undefined
+  let userInfo = getUserInfoById(userId)
+  if (userInfo.agentLevel < AGENT_LEVEL.LEVEL_THREE && userInfo.friendsNum > 10) {
+    user = AV.Object.createWithoutData('_User', userId)
+    user.set('agentLevel', AGENT_LEVEL.LEVEL_THREE)
+    return await user.save()
+  }
+  return user
+}
+
+/**
+ * 增加用户的好友数
+ * @param userId
+ * @returns {*}
+ */
+export async function incUserFriends(userId) {
+  let user = AV.Object.createWithoutData('_User', userId)
+  user.increment('friendsNum')
+  await user.save()
+  return await agentLevelUpgrade(userId)
+}
+
+/**
+ * 用户缴费成为代理后，更新用户的邀请者和代理级别
+ * @param userId
+ * @param inviterId
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function tobeAgentLevelTwo(userId, inviterId) {
+  let user = AV.Object.createWithoutData('_User', userId)
+  if (inviterId) {
+    let inviterInfo = getUserInfoById(inviterId)
+    if (inviterInfo) {
+      let inviter = AV.Object.createWithoutData('_User', inviterId)
+      user.set('inviter', inviter)
+    } else {
+      throw new AV.Cloud.Error('inviter not exist', {code: errno.EACCES});
+    }
+  }
+  user.set('agentLevel', AGENT_LEVEL.LEVEL_TWO)
+  return await user.save()
 }

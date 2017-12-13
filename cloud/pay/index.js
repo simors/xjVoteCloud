@@ -9,7 +9,7 @@ import uuidv4 from 'uuid'
 import Promise from 'bluebird'
 import moment from 'moment'
 import mysqlUtil from '../mysqlUtil'
-import {getUserInfoById} from '../user'
+import {getUserInfoById, tobeAgentLevelTwo, incUserFriends} from '../user'
 import {VOTE_STATUS, presentGift, incVoteProfit, updateVoteStatus} from '../vote'
 import {PINGPP_APP_ID, PINGPP_API_KEY} from '../../config'
 
@@ -21,6 +21,7 @@ const DEAL_TYPE = {
   WITHDRAW: 3,      // 提现
   BUY_GIFT: 4,      // 购买礼品
   VOTE_PROFIT: 5,   // 活动收益
+  AGENT_PAY: 6,     // 成为代理
 }
 
 // 钱包余额操作类型
@@ -207,6 +208,10 @@ export async function handlePaymentWebhootsEvent(request) {
       case DEAL_TYPE.BUY_GIFT:
         await presentGift(fromUser, metadata.playerId, metadata.giftId, amount, metadata.giftNum, metadata.ballot)
         await incVoteProfit(metadata.voteId, amount)
+        break
+      case DEAL_TYPE.AGENT_PAY:
+        await tobeAgentLevelTwo(fromUser, metadata.inviter)
+        await incUserFriends(fromUser)
         break
       default:
         console.error('unsupported deal type!')
