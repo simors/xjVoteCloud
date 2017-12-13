@@ -11,8 +11,9 @@ import moment from 'moment'
 import mysqlUtil from '../mysqlUtil'
 import {getUserInfoById} from '../user'
 import {VOTE_STATUS, presentGift, incVoteProfit, updateVoteStatus} from '../vote'
+import {PINGPP_APP_ID, PINGPP_API_KEY} from '../../config'
 
-var pingpp = Pingpp(process.env.PINGPP_API_KEY)
+var pingpp = Pingpp(PINGPP_API_KEY)
 
 const DEAL_TYPE = {
   VOTE_PAY: 1,      // 活动支付
@@ -78,7 +79,7 @@ export async function createPaymentRequest(request) {
       const order_no = uuidv4().replace(/-/g, '').substr(0, 16)
       pingpp.charges.create({
         order_no: order_no,
-        app: {id: process.env.PINGPP_APP_ID},
+        app: {id: PINGPP_APP_ID},
         channel: "wx_lite",
         amount: mathjs.chain(amount).multiply(100).done(),
         client_ip: remoteAddress,
@@ -129,7 +130,7 @@ export async function createWithdrawRequest(request) {
       const order_no = uuidv4().replace(/-/g, '').substr(0, 16)
       pingpp.transfers.create({
         order_no: order_no,
-        app: {id: process.env.PINGPP_APP_ID},
+        app: {id: PINGPP_APP_ID},
         channel: "wx_lite",
         amount: mathjs.chain(amount).multiply(100).done(),
         currency: "cny",

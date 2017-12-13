@@ -3,13 +3,14 @@
  */
 var mysql = require('mysql')
 var Promise = require('bluebird')
+import {MYSQL_HOST, MYSQL_USER, MYSQL_PWD, MYSQL_DB} from '../config'
 
 var mysqlPool  = mysql.createPool({
   connectionLimit : 100,
-  host            : process.env.MYSQL_HOST,
-  user            : process.env.MYSQL_USER,
-  password        : process.env.MYSQL_PWD,
-  database        : process.env.MYSQL_DB,
+  host            : MYSQL_HOST,
+  user            : MYSQL_USER,
+  password        : MYSQL_PWD,
+  database        : MYSQL_DB,
 })
 
 mysqlPool.on('connection', function (connection) {
