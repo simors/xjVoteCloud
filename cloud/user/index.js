@@ -20,6 +20,9 @@ export function constructUser(leanUser) {
   user.province = leanUserAttr.province
   user.city = leanUserAttr.city
   user.openid = leanUserAttr.authData.lc_weapp.openid || undefined
+  user.agentLevel = leanUserAttr.agentLevel
+  user.royalty = leanUserAttr.royalty
+  user.inviterId = leanUserAttr.inviter ? leanUserAttr.inviter.id : undefined
   return user
 }
 
