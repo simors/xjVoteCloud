@@ -122,6 +122,11 @@ export async function incUserFriends(userId) {
  * @returns {*|AV.Promise|Promise<T>}
  */
 export async function tobeAgentLevelTwo(userId, inviterId) {
+  let userInfo = getUserInfoById(userId)
+  if (userInfo.agentLevel > AGENT_LEVEL.LEVEL_ONE) {
+    return undefined
+  }
+  await incUserFriends(inviterId)
   let user = AV.Object.createWithoutData('_User', userId)
   if (inviterId) {
     let inviterInfo = getUserInfoById(inviterId)

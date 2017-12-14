@@ -211,7 +211,6 @@ export async function handlePaymentWebhootsEvent(request) {
         break
       case DEAL_TYPE.AGENT_PAY:
         await tobeAgentLevelTwo(fromUser, metadata.inviter)
-        await incUserFriends(metadata.inviter)
         break
       default:
         console.error('unsupported deal type!')
