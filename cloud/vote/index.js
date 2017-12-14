@@ -5,7 +5,7 @@ import AV from 'leanengine'
 import * as errno from '../errno'
 import moment from 'moment'
 import math from 'mathjs'
-import {constructUser} from '../user'
+import {constructUser, getUserRoyalty} from '../user'
 import {saveVoteProfit} from '../pay'
 
 export const VOTE_STATUS = {
@@ -757,6 +757,7 @@ async function fetchVotesOrderByDate(lastDate) {
     query.lessThan('createdAt', new Date(lastDate))
   }
   query.descending('createdAt')
+  query.include('creator')
   query.limit(1000)
   return await query.find()
 }
@@ -773,12 +774,13 @@ export async function runVoteProfitAccount(request) {
     }
     for (let vote of votes) {
       let voteAttr = vote.attributes
-      if (!voteAttr.profit || !voteAttr.creator || !voteAttr.creator.id) {
+      if (!voteAttr.profit || !voteAttr.creator || !voteAttr.creator.id || !voteAttr.creator.attributes) {
         continue
       }
       let profit = voteAttr.profit
       let creator = voteAttr.creator.id
-      let creatorProfit = math.round(math.chain(profit).multiply(0.7).done(), 2)
+      let royalty = getUserRoyalty(voteAttr.creator.attributes.agentLevel)
+      let creatorProfit = math.round(math.chain(profit).multiply(royalty).done(), 2)
       try {
         await saveVoteProfit(creatorProfit, creator)
         await updateVoteStatus(vote.id, VOTE_STATUS.ACCOUNTED)

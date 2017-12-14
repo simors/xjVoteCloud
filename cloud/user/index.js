@@ -10,6 +10,12 @@ const AGENT_LEVEL = {
   LEVEL_THREE: 3
 }
 
+const ROYALTY_LEVEL = {
+  ROYALTY_ONE: 0.2,
+  ROYALTY_TWO: 0.35,
+  ROYALTY_THREE: 0.45
+}
+
 export function constructUser(leanUser) {
   let user = {}
   if (!leanUser) {
@@ -27,7 +33,6 @@ export function constructUser(leanUser) {
   user.city = leanUserAttr.city
   user.openid = leanUserAttr.authData.lc_weapp.openid || undefined
   user.agentLevel = leanUserAttr.agentLevel
-  user.royalty = leanUserAttr.royalty
   user.inviterId = leanUserAttr.inviter ? leanUserAttr.inviter.id : undefined
   user.friendsNum = leanUserAttr.friendsNum
   return user
@@ -117,4 +122,22 @@ export async function tobeAgentLevelTwo(userId, inviterId) {
   }
   user.set('agentLevel', AGENT_LEVEL.LEVEL_TWO)
   return await user.save()
+}
+
+/**
+ * 根据用户代理级别返回分成比例
+ * @param agentLevel
+ * @returns {number}
+ */
+export function getUserRoyalty(agentLevel) {
+  switch (agentLevel) {
+    case AGENT_LEVEL.LEVEL_ONE:
+      return ROYALTY_LEVEL.ROYALTY_ONE
+    case AGENT_LEVEL.LEVEL_TWO:
+      return ROYALTY_LEVEL.ROYALTY_TWO
+    case AGENT_LEVEL.LEVEL_THREE:
+      return ROYALTY_LEVEL.ROYALTY_THREE
+    default:
+      return 0
+  }
 }
