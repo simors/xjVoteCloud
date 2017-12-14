@@ -106,6 +106,9 @@ async function agentLevelUpgrade(userId) {
  * @returns {*}
  */
 export async function incUserFriends(userId) {
+  if (!userId) {
+    return undefined
+  }
   let user = AV.Object.createWithoutData('_User', userId)
   user.increment('friendsNum')
   await user.save()
