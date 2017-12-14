@@ -323,13 +323,13 @@ async function judgeVoteStatus(vote) {
   let query = new AV.Query('Votes')
   
   if (status == VOTE_STATUS.WAITING) {
-    endDate = moment(startDate).format('YYYY-MM-DD')
+    endDate = moment(startDate, 'YYYY-MM-DD').format('YYYY-MM-DD')
     if (nowDate > endDate) {
       await updateVoteStatus(vote.id, VOTE_STATUS.STARTING)
       return await query.get(vote.id)
     }
   } else if (status == VOTE_STATUS.STARTING) {
-    endDate = moment(startDate).add(expire, 'days').format('YYYY-MM-DD')
+    endDate = moment(startDate, 'YYYY-MM-DD').add(expire, 'days').format('YYYY-MM-DD')
     if (nowDate > endDate) {
       await updateVoteStatus(vote.id, VOTE_STATUS.DONE)
       return await query.get(vote.id)
