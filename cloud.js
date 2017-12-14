@@ -5,6 +5,7 @@ import * as payCloud from './cloud/pay'
 
 /* 用户 */
 AV.Cloud.define('userUpdateInfo', userCloud.updateUserInfo);
+AV.Cloud.define('userFetchUserInfo', userCloud.reqUserInfo);
 
 /* 投票 */
 AV.Cloud.define('voteFetchGifts', voteCloud.fetchGifts);

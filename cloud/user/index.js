@@ -76,6 +76,15 @@ export async function getUserInfoById(userId) {
 }
 
 /**
+ * 更加用户id获取用户信息的外部接口
+ * @param request
+ */
+export async function reqUserInfo(request) {
+  let {userId} = request.params
+  return getUserInfoById(userId)
+}
+
+/**
  * 判断用户代理级别是否需要升级
  * @param userId
  * @returns {*}
