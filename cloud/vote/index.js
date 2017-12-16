@@ -35,6 +35,7 @@ function constructGift(leanAward) {
   award.ballot = awardAttr.ballot
   award.photo = awardAttr.photo
   award.price = awardAttr.price
+  award.vtag = awardAttr.vtag
   return award
 }
 
@@ -123,6 +124,7 @@ function constructGiftMap(leanGiftMap) {
 export async function fetchGifts(request) {
   let retAwards = []
   let query = new AV.Query('Gifts')
+  query.equalTo('vtag', 'v01')
   query.ascending('price')
   let result = await query.find()
   for (let award of result) {
