@@ -7,13 +7,15 @@ import * as errno from '../errno'
 const AGENT_LEVEL = {
   LEVEL_ONE: 1,
   LEVEL_TWO: 2,
-  LEVEL_THREE: 3
+  LEVEL_THREE: 3,
+  LEVEL_FOUR: 4,
 }
 
 const ROYALTY_LEVEL = {
   ROYALTY_ONE: 0.2,
   ROYALTY_TWO: 0.35,
-  ROYALTY_THREE: 0.45
+  ROYALTY_THREE: 0.4,
+  ROYALTY_FOUR: 0.45
 }
 
 export function constructUser(leanUser) {
@@ -92,9 +94,13 @@ export async function reqUserInfo(request) {
 async function agentLevelUpgrade(userId) {
   let user = undefined
   let userInfo = getUserInfoById(userId)
-  if (userInfo.agentLevel < AGENT_LEVEL.LEVEL_THREE && userInfo.friendsNum > 10) {
+  if (userInfo.agentLevel < AGENT_LEVEL.LEVEL_THREE && userInfo.friendsNum > 5) {
     user = AV.Object.createWithoutData('_User', userId)
     user.set('agentLevel', AGENT_LEVEL.LEVEL_THREE)
+    return await user.save()
+  } else if (userInfo.agentLevel < AGENT_LEVEL.LEVEL_FOUR && userInfo.friendsNum > 10) {
+    user = AV.Object.createWithoutData('_User', userId)
+    user.set('agentLevel', AGENT_LEVEL.LEVEL_FOUR)
     return await user.save()
   }
   return user
@@ -154,6 +160,8 @@ export function getUserRoyalty(agentLevel) {
       return ROYALTY_LEVEL.ROYALTY_TWO
     case AGENT_LEVEL.LEVEL_THREE:
       return ROYALTY_LEVEL.ROYALTY_THREE
+    case AGENT_LEVEL.LEVEL_FOUR:
+      return ROYALTY_LEVEL.ROYALTY_FOUR
     default:
       return 0
   }

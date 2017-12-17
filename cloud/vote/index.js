@@ -149,6 +149,10 @@ export async function presentGift(userId, playerId, giftId, price, giftNum, ball
   let user = AV.Object.createWithoutData('_User', userId)
   let vote = await getVoteByPlayer(playerId)
   
+  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
+    throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
+  }
+  
   await incPlayerGift(playerId, giftNum)
   await incPlayerVoteNum(playerId, ballot)
   await incVoteNum(vote.id, ballot)
