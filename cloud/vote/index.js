@@ -330,13 +330,14 @@ async function judgeVoteStatus(vote) {
   
   if (status == VOTE_STATUS.WAITING) {
     endDate = moment(startDate, 'YYYY-MM-DD').format('YYYY-MM-DD')
-    if (nowDate > endDate) {
+    if (nowDate >= endDate) {
       await updateVoteStatus(vote.id, VOTE_STATUS.STARTING)
       return await query.get(vote.id)
     }
   } else if (status == VOTE_STATUS.STARTING) {
-    endDate = moment(startDate, 'YYYY-MM-DD').add(expire, 'days').format('YYYY-MM-DD')
-    if (nowDate > endDate) {
+    let hours = 24 * (expire - 1) + 21      // 活动在晚上9点结束
+    endDate = moment(startDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    if (nowDate >= endDate) {
       await updateVoteStatus(vote.id, VOTE_STATUS.DONE)
       return await query.get(vote.id)
     }
