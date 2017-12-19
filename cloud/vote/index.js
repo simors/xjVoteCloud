@@ -63,6 +63,7 @@ function constructVote(leanVote, includeUser) {
   vote.voteNum = voteAttr.voteNum
   vote.pv = voteAttr.pv
   vote.profit = voteAttr.profit
+  vote.enable = voteAttr.enable
   
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
@@ -86,6 +87,7 @@ function constructPlayer(leanPlayer, includeUser, includeVote) {
   player.giftNum = playerAttr.giftNum
   player.voteNum = playerAttr.voteNum
   player.pv = playerAttr.pv
+  player.enable = playerAttr.enable
   player.creatorId = playerAttr.creator ? playerAttr.creator.id : undefined
   player.voteId = playerAttr.vote ? playerAttr.vote.id : undefined
   
