@@ -64,7 +64,7 @@ function constructVote(leanVote, includeUser) {
   vote.pv = voteAttr.pv
   vote.profit = voteAttr.profit
   vote.enable = voteAttr.enable
-  vote.enablePresent = false
+  vote.enablePresent = true
   
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
