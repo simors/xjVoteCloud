@@ -25,7 +25,8 @@
     "moment": "^2.19.2",
     "mysql": "^2.15.0",
     "pingpp": "^2.0.13",
-    "uuid": "^3.1.0"
+    "uuid": "^3.1.0",
+    "wechat": "^2.1.0"
   },
   "devDependencies": {
     "nodemon": "^1.11.0"

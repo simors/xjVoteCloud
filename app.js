@@ -6,6 +6,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var AV = require('leanengine');
+var wechat = require('wechat');
+var wechatServer = require('./wechat/Server')
 
 // 加载云函数定义，你可以将云函数拆分到多个文件方便管理，但需要在主文件中加载它们
 require('./cloud');
@@ -35,6 +37,15 @@ app.use(cookieParser());
 app.get('/', function(req, res) {
   res.render('index', { currentTime: new Date() });
 });
+
+//微信公众号消息
+const wechatConfig = {
+  appid: process.env.WECHAT_APPID,
+  token: process.env.WECHAT_TOKEN,
+  encodingAESKey: process.env.WECHAT_encodingAESKey,
+  checkSignature: true,
+}
+app.use('/wechat', wechat(wechatConfig, wechatServer.wechatServer))
 
 // 可以将一类的路由单独保存在一个文件中
 app.use('/todos', require('./routes/todos'));
