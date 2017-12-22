@@ -627,15 +627,15 @@ export async function setPlayerDisable(request) {
 export async function searchPlayer(request) {
   let {voteId, searchKey} = request.params
   
-  let nameQuery = new AV.Query('Player')
-  nameQuery.equalTo('name', searchKey)
+  let query = new AV.Query('Player')
   
-  let idQuery = new AV.Query('Player')
-  idQuery.equalTo('number', searchKey)
+  if (isNaN(searchKey)) {
+    query.equalTo('name', searchKey)
+  } else {
+    query.equalTo('number', Number(searchKey))
+  }
   
   let vote = AV.Object.createWithoutData('Votes', voteId)
-  
-  let query = AV.Query.or(nameQuery, idQuery)
   query.equalTo('vote', vote)
   query.equalTo('enable', 1)
   let leanPlayers = await query.find()
