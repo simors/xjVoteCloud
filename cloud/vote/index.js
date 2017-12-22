@@ -590,6 +590,43 @@ export async function getPlayerById(request) {
 }
 
 /**
+ * 设置参赛选手是否有效
+ * @param request
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+export async function setPlayerDisable(request) {
+  let {playerId, disable} = request.params
+  let player = AV.Object.createWithoutData('Player', playerId)
+  player.set('enable', !disable)
+  return await player.save()
+}
+
+/**
+ * 搜索某个投票活动的参赛者
+ * @param request
+ */
+export async function searchPlayer(request) {
+  let {voteId, searchKey} = request.params
+  
+  let nameQuery = new AV.Query('Player')
+  nameQuery.equalTo('name', searchKey)
+  
+  let idQuery = new AV.Query('Player')
+  idQuery.equalTo('number', searchKey)
+  
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  
+  let query = AV.Query.or(nameQuery, idQuery)
+  query.equalTo('vote', vote)
+  let leanPlayers = await query.find()
+  let players = []
+  leanPlayers.forEach((player) => {
+    players.push(constructPlayer(player, false, false))
+  })
+  return players
+}
+
+/**
  * 刷新某个参赛选手的热度
  * @param request
  * @returns {*|AV.Promise|Promise<T>}
