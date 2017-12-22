@@ -508,6 +508,17 @@ export async function incVoteApplyNum(voteId) {
 }
 
 /**
+ * 减少活动参与者个数
+ * @param voteId
+ * @returns {*|AV.Promise|Promise<T>}
+ */
+async function decVoteApplyNum(voteId) {
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.increment('applyNum', -1)
+  return await vote.save()
+}
+
+/**
  * 根据投票活动获取新报名参与者的参赛编号
  * @param voteId
  */
@@ -565,6 +576,7 @@ export async function fetchVotePlayers(request) {
   let query = new AV.Query('Player')
   query.ascending('number')
   query.equalTo('vote', vote)
+  query.equalTo('enable', 1)
   if (lastNumber) {
     query.greaterThan('number', lastNumber)
   }
@@ -596,8 +608,15 @@ export async function getPlayerById(request) {
  */
 export async function setPlayerDisable(request) {
   let {playerId, disable} = request.params
+  
+  let vote = await getVoteByPlayer(playerId)
+  if (disable) {
+    await decVoteApplyNum(vote.id)
+  } else {
+    await incVoteApplyNum(vote.id)
+  }
   let player = AV.Object.createWithoutData('Player', playerId)
-  player.set('enable', !disable)
+  player.set('enable', disable ? 0 : 1)
   return await player.save()
 }
 
@@ -618,6 +637,7 @@ export async function searchPlayer(request) {
   
   let query = AV.Query.or(nameQuery, idQuery)
   query.equalTo('vote', vote)
+  query.equalTo('enable', 1)
   let leanPlayers = await query.find()
   let players = []
   leanPlayers.forEach((player) => {
@@ -673,6 +693,7 @@ export async function fetchVoteRank(request) {
   let vote = AV.Object.createWithoutData('Votes', voteId)
   let query = new AV.Query('Player')
   query.equalTo('vote', vote)
+  query.equalTo('enable', 1)
   query.descending('voteNum')
   query.limit(500)
   let leanRank = await query.find()
