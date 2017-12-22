@@ -741,3 +741,12 @@ export async function saveVoteProfit(profit, creator) {
     }
   }
 }
+
+/**
+ * 是否允许代理支付
+ * @param request
+ * @returns {boolean}
+ */
+export async function enableAgentPay(request) {
+  return false
+}
