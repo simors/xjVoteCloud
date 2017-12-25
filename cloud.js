@@ -2,6 +2,7 @@ var AV = require('leanengine');
 import * as userCloud from './cloud/user'
 import * as voteCloud from './cloud/vote'
 import * as payCloud from './cloud/pay'
+import * as weappCloud from './cloud/weapp'
 
 /* 用户 */
 AV.Cloud.define('userUpdateInfo', userCloud.updateUserInfo);
@@ -43,3 +44,6 @@ AV.Cloud.define('payWithWalletBalance', payCloud.payWithWalletBalance)
 AV.Cloud.define('payFetchUserDealRecords', payCloud.fetchUserDealRecords)
 AV.Cloud.define('payGetAgentPrice', payCloud.getAgentPrice)
 AV.Cloud.define('payEnableAgentPay', payCloud.enableAgentPay)
+
+/* 微信小程序 */
+AV.Cloud.define('weappGetAuthData', weappCloud.getWeappAuthData)

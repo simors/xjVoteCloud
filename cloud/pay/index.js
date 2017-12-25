@@ -404,6 +404,9 @@ async function updateWalletProcess(conn, userId, process) {
  * @param type    操作的类型，取值为WALLET_OPER
  */
 async function updateBalance(conn, userId, cost, type) {
+  if (cost === 0) {
+    return undefined
+  }
   try {
     let sql = ""
     if (type === WALLET_OPER.INCREMENT) {
@@ -428,8 +431,11 @@ async function updateBalance(conn, userId, cost, type) {
  * @returns {*}
  */
 async function addDealRecord(conn, deal) {
+  if (deal.cost === 0) {
+    return undefined
+  }
   if (!deal.from || !deal.to || !deal.cost || !deal.deal_type) {
-    throw new Error('')
+    throw new AV.Cloud.Error('参数错误', {code: errno.EACCES})
   }
   var charge_id = deal.charge_id || ''
   var order_no = deal.order_no || ''
@@ -739,6 +745,7 @@ export async function saveVoteProfit(profit, creator) {
     await updateBalance(mysqlConn, creator, profit, WALLET_OPER.INCREMENT)
     await mysqlUtil.commit(mysqlConn)
   } catch (error) {
+    console.error('error in saveVoteProfit', error)
     if(mysqlConn) {
       await mysqlUtil.rollback(mysqlConn)
     }
