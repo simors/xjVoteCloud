@@ -31,6 +31,15 @@ router.get('/', function (req, res, next) {
       "access_token": accessToken,
       "expires_at": Date.parse(expires_in),
     }
+
+    return wechatAuthFuncs.getUserInfo(openid)
+  }).then((wechatUserInfo) => {
+    let leanUser = new AV.User()
+    leanUser.set('nickname', wechatUserInfo.nickname)
+    leanUser.set('username', unionid)
+    leanUser.set('avatar', wechatUserInfo.headimgurl)
+    return AV.User.associateWithAuthData(leanUser, 'weixin', authData)
+  }).then(() => {
     redirectUrl = GLOBAL_CONFIG.WECHAT_CLIENT_DOMAIN + state + '?' +querystring.stringify(authData)
     res.redirect(redirectUrl)
   }).catch((error) => {
