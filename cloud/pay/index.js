@@ -44,6 +44,11 @@ const WITHDRAW_APPLY_TYPE = {
   PROFIT: 1,        // 服务单位和投资人申请收益取现
 }
 
+const AGENT_PRICE = {
+  price: 10000,
+  rebate: 3500
+}
+
 function constructDealRecord(dealRecord) {
   let deal = {}
   deal.id = dealRecord.id
@@ -211,6 +216,9 @@ export async function handlePaymentWebhootsEvent(request) {
         break
       case DEAL_TYPE.AGENT_PAY:
         await tobeAgentLevelTwo(fromUser, metadata.inviter)
+        if (metadata.inviter) {
+          await updateBalance(mysqlConn, metadata.inviter, AGENT_PRICE.rebate, WALLET_OPER.INCREMENT)
+        }
         break
       default:
         console.error('unsupported deal type!')
@@ -740,6 +748,14 @@ export async function saveVoteProfit(profit, creator) {
       await mysqlUtil.release(mysqlConn)
     }
   }
+}
+
+/**
+ * 获取代理价格
+ * @param request
+ */
+export async function getAgentPrice(request) {
+  return AGENT_PRICE.price
 }
 
 /**
