@@ -38,14 +38,16 @@ app.get('/', function(req, res) {
   res.render('index', { currentTime: new Date() });
 });
 
-//微信公众号消息
 const wechatConfig = {
   appid: process.env.WECHAT_APPID,
   token: process.env.WECHAT_TOKEN,
   encodingAESKey: process.env.WECHAT_encodingAESKey,
   checkSignature: true,
 }
+//微信公众号消息服务
 app.use('/wechat', wechat(wechatConfig, wechatServer.wechatServer))
+//微信授权
+app.use('/wechatOauth', require('./routes/wechatOauth'))
 
 // 可以将一类的路由单独保存在一个文件中
 app.use('/todos', require('./routes/todos'));

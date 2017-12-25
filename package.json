@@ -25,8 +25,12 @@
     "moment": "^2.19.2",
     "mysql": "^2.15.0",
     "pingpp": "^2.0.13",
+    "querystring": "^0.2.0",
+    "redis": "^2.8.0",
     "uuid": "^3.1.0",
-    "wechat": "^2.1.0"
+    "wechat": "^2.1.0",
+    "wechat-api": "^1.35.1",
+    "wechat-oauth": "^1.2.1"
   },
   "devDependencies": {
     "nodemon": "^1.11.0"
