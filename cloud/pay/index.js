@@ -22,6 +22,7 @@ const DEAL_TYPE = {
   BUY_GIFT: 4,      // 购买礼品
   VOTE_PROFIT: 5,   // 活动收益
   AGENT_PAY: 6,     // 成为代理
+  INVITE_AGENT: 7,  // 邀请代理收益
 }
 
 // 钱包余额操作类型
@@ -218,6 +219,20 @@ export async function handlePaymentWebhootsEvent(request) {
         await tobeAgentLevelTwo(fromUser, metadata.inviter)
         if (metadata.inviter) {
           await updateBalance(mysqlConn, metadata.inviter, AGENT_PRICE.rebate, WALLET_OPER.INCREMENT)
+          const invitorDeal = {
+            from: 'platform',
+            to: metadata.inviter,
+            cost: AGENT_PRICE.rebate,
+            deal_type: DEAL_TYPE.INVITE_AGENT,
+            charge_id: '',
+            order_no: uuidv4().replace(/-/g, '').substr(0, 16),
+            channel: '',
+            transaction_no: '',
+            openid: '',
+            payTime: Date.now(),
+            metadata: {},
+          }
+          await addDealRecord(mysqlConn, invitorDeal)
         }
         break
       default:
