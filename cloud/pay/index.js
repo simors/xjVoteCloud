@@ -45,7 +45,7 @@ const WITHDRAW_APPLY_TYPE = {
 }
 
 const AGENT_PRICE = {
-  price: 1000,
+  price: 10000,
   rebate: 3500
 }
 
