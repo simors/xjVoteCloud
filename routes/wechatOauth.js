@@ -38,7 +38,7 @@ router.get('/', function (req, res, next) {
     leanUser.set('nickname', wechatUserInfo.nickname)
     leanUser.set('username', unionid)
     leanUser.set('avatar', wechatUserInfo.headimgurl)
-    return AV.User.associateWithAuthData(leanUser, 'weixin', authData)
+    return leanUser.associateWithAuthData(authData, 'weixin')
   }).then(() => {
     redirectUrl = GLOBAL_CONFIG.WECHAT_CLIENT_DOMAIN + state + '?' +querystring.stringify(authData)
     res.redirect(redirectUrl)
