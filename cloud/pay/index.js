@@ -46,7 +46,7 @@ const WITHDRAW_APPLY_TYPE = {
 
 const AGENT_PRICE = {
   price: 10000,
-  rebate: 3500
+  rebate: 3600
 }
 
 function constructDealRecord(dealRecord) {
@@ -77,7 +77,7 @@ export async function createPaymentRequest(request) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES})
   }
   const remoteAddress = meta.remoteAddress
-  const {amount, metadata, openid, subject} = request.params
+  const {amount, metadata, openid, subject, channel} = request.params
 
   pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
   try {
@@ -86,7 +86,7 @@ export async function createPaymentRequest(request) {
       pingpp.charges.create({
         order_no: order_no,
         app: {id: PINGPP_APP_ID},
-        channel: "wx_lite",
+        channel: channel,
         amount: mathjs.chain(amount).multiply(100).done(),
         client_ip: remoteAddress,
         currency: "cny",
@@ -120,7 +120,7 @@ export async function createWithdrawRequest(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES})
   }
-  const {amount, metadata, openid} = request.params
+  const {amount, metadata, openid, channel} = request.params
   pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
 
   let walletInfo = await getWalletInfo(currentUser.id)
@@ -137,7 +137,7 @@ export async function createWithdrawRequest(request) {
       pingpp.transfers.create({
         order_no: order_no,
         app: {id: PINGPP_APP_ID},
-        channel: "wx_lite",
+        channel: channel,
         amount: mathjs.chain(amount).multiply(100).done(),
         currency: "cny",
         type: "b2c",
@@ -458,13 +458,16 @@ export async function createWithdrawApply(request) {
   if(!currentUser) {
     throw new AV.Cloud.Error('用户未登录', {code: errno.EPERM})
   }
+  let {amount, applyType, channel} = request.params
   let userId = currentUser.id
-  let openid = currentUser.attributes.authData.lc_weapp.openid
+  let openid = undefined
+  if (channel === 'wx_lite') {
+    openid = currentUser.attributes.authData.lc_weapp_union.openid
+  }
   if (!openid) {
     throw new AV.Cloud.Error('用户未绑定微信号', {code: errno.ERROR_NO_WECHAT})
   }
   let walletInfo = await getWalletInfo(currentUser.id)
-  let {amount, applyType} = request.params
   if(Number(walletInfo.balance) < Number(amount)) {
     throw new AV.Cloud.Error('余额不足', {code: errno.ERROR_NOT_ENOUGH_MONEY})
   }
@@ -477,8 +480,8 @@ export async function createWithdrawApply(request) {
       throw new AV.Cloud.Error('提现处理中', {code: errno.ERROR_IN_WITHDRAW_PROCESS})
     }
 
-    let iSql = 'INSERT INTO `WithdrawApply` (`userId`, `openid`, `amount`, `applyDate`, `status`, `applyType`) VALUES(?, ?, ?, ?, ?, ?)'
-    let insertRes = await mysqlUtil.query(conn, iSql, [userId, openid, amount, moment().format('YYYY-MM-DD HH:mm:ss'), WITHDRAW_STATUS.APPLYING, applyType])
+    let iSql = 'INSERT INTO `WithdrawApply` (`userId`, `openid`, `amount`, `applyDate`, `status`, `applyType`, `channel`) VALUES(?, ?, ?, ?, ?, ?, ?)'
+    let insertRes = await mysqlUtil.query(conn, iSql, [userId, openid, amount, moment().format('YYYY-MM-DD HH:mm:ss'), WITHDRAW_STATUS.APPLYING, applyType, channel])
     if (!insertRes.results.insertId) {
       throw new AV.Cloud.Error('生成取现申请失败', {code: errno.EIO})
     }

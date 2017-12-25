@@ -33,7 +33,8 @@ export function constructUser(leanUser) {
   user.gender = leanUserAttr.gender
   user.province = leanUserAttr.province
   user.city = leanUserAttr.city
-  user.openid = leanUserAttr.authData.lc_weapp.openid || undefined
+  let weappUnion = leanUserAttr.authData.lc_weapp_union
+  user.weappOpenid = weappUnion && weappUnion.openid ? weappUnion.openid : undefined
   user.agentLevel = leanUserAttr.agentLevel
   user.inviterId = leanUserAttr.inviter ? leanUserAttr.inviter.id : undefined
   user.friendsNum = leanUserAttr.friendsNum
@@ -165,4 +166,27 @@ export function getUserRoyalty(agentLevel) {
     default:
       return 0
   }
+}
+
+/**
+ * 根据用户的unionid获取用户信息
+ * @param unionid
+ */
+export async function getUserByUnionid(unionid) {
+  let query = new AV.Query('_User')
+  query.equalTo('unionid', unionid)
+  let user = await query.first()
+  return constructUser(user)
+}
+
+export async function createUserByWeappAuthData(authData) {
+  let leanUser = new AV.User()
+  leanUser.set('username', authData.uid)
+  leanUser.set('unionid', authData.uid)
+  return await leanUser.associateWithAuthData(authData, 'lc_weapp_union')
+}
+
+export async function associateUserWithWeappAuthData(userId, authData) {
+  let user = AV.Object.createWithoutData('_User', userId)
+  return await user.associateWithAuthData(authData, 'lc_weapp_union')
 }
