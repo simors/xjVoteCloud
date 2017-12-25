@@ -1,6 +1,10 @@
 'use strict';
 require('babel-register')
 require("babel-polyfill")
+var wechat_api = require('./wechat/util/wechatUtil').wechat_api
+var mpTokenFuncs = require('./wechat/Token')
+var mpMenuFuncs = require('./wechat/Menu')
+
 
 var AV = require('leanengine');
 
@@ -12,6 +16,16 @@ AV.init({
 
 // 如果不希望使用 masterKey 权限，可以将下面一行删除
 AV.Cloud.useMasterKey();
+
+//获取微信公众号api token &创建菜单
+wechat_api.getLatestToken(function (err, token) {
+  if(err) {
+    console.warn("获取微信公众号token失败", err)
+  } else {
+    wechat_api.registerTicketHandle(mpTokenFuncs.getTicketToken, mpTokenFuncs.saveTicketToken)
+    mpMenuFuncs.createMenu();
+  }
+})
 
 var app = require('./app');
 
