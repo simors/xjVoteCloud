@@ -66,6 +66,11 @@ function constructVote(leanVote, includeUser) {
   vote.enable = voteAttr.enable
   vote.enablePresent = false
   
+  let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
+  let hours = 24 * (vote.expire - 1) + 21      // 活动在晚上9点结束
+  let endDate = moment(vote.startDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
+  vote.counter = parseInt(((new Date(endDate)).getTime() - (new Date(nowDate)).getTime()) / 1000)
+  
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
   }
