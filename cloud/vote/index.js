@@ -869,3 +869,12 @@ export async function runVoteProfitAccount(request) {
     }
   }
 }
+
+/**
+ * 创建活动是的口令，目前只有临时代理才需要
+ * @param request
+ * @returns {string}
+ */
+export async function getCreateVotePassword(request) {
+  return "ewi2j1"
+}
