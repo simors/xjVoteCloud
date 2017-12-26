@@ -3,6 +3,7 @@
  */
 import AV from 'leanengine'
 import * as errno from '../errno'
+import mpAuthFuncs from '../../wechat/Auth'
 
 const AGENT_LEVEL = {
   LEVEL_ONE: 1,
@@ -189,4 +190,19 @@ export async function createUserByWeappAuthData(authData) {
 export async function associateUserWithWeappAuthData(userId, authData) {
   let user = AV.Object.createWithoutData('_User', userId)
   return await user.associateWithAuthData(authData, 'lc_weapp_union')
+}
+
+export async function createUserByWechatAuthData(authData, unionid) {
+  let leanUser = new AV.User()
+  let wechatUserInfo = await mpAuthFuncs.getUserInfo(authData.openid)
+  leanUser.set('username', unionid)
+  leanUser.set('unionid', unionid)
+  leanUser.set('nickname', wechatUserInfo.nickname)
+  leanUser.set('avatar', wechatUserInfo.headimgurl)
+  return await leanUser.associateWithAuthData(authData, 'weixin')
+}
+
+export async function associateUserWithWechatAuthData(userId, authData) {
+  let user = AV.Object.createWithoutData('_User', userId)
+  return await user.associateWithAuthData(authData, 'weixin')
 }

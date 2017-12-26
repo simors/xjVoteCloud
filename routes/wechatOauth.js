@@ -8,6 +8,7 @@ var router = require('express').Router();
 var wechatAuthFuncs = require('../wechat/Auth')
 var GLOBAL_CONFIG = require('../config')
 var querystring = require('querystring')
+import {getUserByUnionid, createUserByWechatAuthData, associateUserWithWechatAuthData} from '../cloud/user'
 
 router.get('/', function (req, res, next) {
   var code = req.query.code
@@ -31,14 +32,14 @@ router.get('/', function (req, res, next) {
       "access_token": accessToken,
       "expires_at": Date.parse(expires_in),
     }
+    return getUserByUnionid(unionid)
 
-    return wechatAuthFuncs.getUserInfo(openid)
-  }).then((wechatUserInfo) => {
-    let leanUser = new AV.User()
-    leanUser.set('nickname', wechatUserInfo.nickname)
-    leanUser.set('username', unionid)
-    leanUser.set('avatar', wechatUserInfo.headimgurl)
-    return leanUser.associateWithAuthData(authData, 'weixin')
+  }).then((user) => {
+    if(!user) {
+      return createUserByWechatAuthData(authData, unionid)
+    } else {
+      return associateUserWithWechatAuthData(user.id, authData)
+    }
   }).then(() => {
     redirectUrl = GLOBAL_CONFIG.WECHAT_CLIENT_DOMAIN + state + '?' +querystring.stringify(authData)
     res.redirect(redirectUrl)
