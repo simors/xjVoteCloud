@@ -436,6 +436,7 @@ export async function fetchVotes(request) {
   if (lastTime) {
     query.lessThan('createdAt', new Date(lastTime))
   }
+  query.equalTo('enable', 1)
   if (limit) {
     query.limit(limit)
   } else {
