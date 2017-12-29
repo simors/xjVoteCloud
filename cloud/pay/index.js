@@ -789,5 +789,5 @@ export async function getAgentPrice(request) {
  * @returns {boolean}
  */
 export async function enableAgentPay(request) {
-  return false
+  return true
 }

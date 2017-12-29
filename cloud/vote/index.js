@@ -64,7 +64,7 @@ function constructVote(leanVote, includeUser) {
   vote.pv = voteAttr.pv
   vote.profit = voteAttr.profit
   vote.enable = voteAttr.enable
-  vote.enablePresent = false
+  vote.enablePresent = true
   
   let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
   let hours = 24 * (vote.expire - 1) + 21      // 活动在晚上9点结束
@@ -436,6 +436,7 @@ export async function fetchVotes(request) {
   if (lastTime) {
     query.lessThan('createdAt', new Date(lastTime))
   }
+  query.equalTo('enable', 1)
   if (limit) {
     query.limit(limit)
   } else {
