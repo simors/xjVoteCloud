@@ -745,12 +745,36 @@ async function getVotePlayerByDate(playerId, user) {
  * @param user
  * @returns {boolean}
  */
-async function isVoteAllowed(playerId, user) {
+async function isVotePlayerAllowed(playerId, user) {
   const maxVotePerDay = 1
   let query = new AV.Query('VoteMap')
   let player = AV.Object.createWithoutData('Player', playerId)
   query.equalTo('voteDate', new Date(moment().format('YYYY-MM-DD')))
   query.equalTo('player', player)
+  query.equalTo('user', user)
+  let result = await query.find()
+  if (result.length > 0) {
+    let voteNum = result[0].attributes.voteNum
+    if (voteNum == maxVotePerDay) {
+      return false
+    }
+    return true
+  }
+  return true
+}
+
+/**
+ * 判断当天用户是否还可以投票，每个用户对每个投票活动只可以投1票
+ * @param voteId
+ * @param user
+ * @returns {boolean}
+ */
+async function isVoteAllowed(voteId, user) {
+  const maxVotePerDay = 1
+  let query = new AV.Query('VoteMap')
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  query.equalTo('voteDate', new Date(moment().format('YYYY-MM-DD')))
+  query.equalTo('vote', vote)
   query.equalTo('user', user)
   let result = await query.find()
   if (result.length > 0) {
@@ -774,7 +798,12 @@ export async function voteForPlayer(request) {
   }
   let {playerId} = request.params
   
-  let isAllowed = await isVoteAllowed(playerId, currentUser)
+  let vote = await getVoteByPlayer(playerId)
+  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
+    throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
+  }
+  
+  let isAllowed = await isVoteAllowed(vote.id, currentUser)
   if (!isAllowed) {
     throw new AV.Cloud.Error('Vote was used up', {code: errno.ERROR_VOTE_USE_UP});
   }
@@ -786,10 +815,6 @@ export async function voteForPlayer(request) {
   }
   
   let player = AV.Object.createWithoutData('Player', playerId)
-  let vote = await getVoteByPlayer(playerId)
-  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
-    throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
-  }
   
   voteMap.set('user', currentUser)
   voteMap.set('player', player)
