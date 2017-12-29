@@ -3,6 +3,7 @@ import * as userCloud from './cloud/user'
 import * as voteCloud from './cloud/vote'
 import * as payCloud from './cloud/pay'
 import * as weappCloud from './cloud/weapp'
+import mpJsSdkFuncs from './wechat/JSSDK'
 
 /* 用户 */
 AV.Cloud.define('userUpdateInfo', userCloud.updateUserInfo);
@@ -48,3 +49,6 @@ AV.Cloud.define('payEnableAgentPay', payCloud.enableAgentPay)
 
 /* 微信小程序 */
 AV.Cloud.define('weappGetAuthData', weappCloud.getWeappAuthData)
+
+/* 微信js-sdk */
+AV.Cloud.define('wechatGetJsSdkConfig', mpJsSdkFuncs.getJsConfig)
