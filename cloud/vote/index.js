@@ -480,6 +480,19 @@ export async function updateVoteStatus(voteId, status) {
 }
 
 /**
+ * 设置投票的使能
+ * @param request
+ * @returns {Promise<T>|*|AV.Promise}
+ */
+export async function setVoteDisable(request) {
+  let {voteId, disable} = request.params
+  
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.set('enable', disable ? 0 : 1)
+  return await vote.save()
+}
+
+/**
  * 更新投票的热度
  * @param request
  */
