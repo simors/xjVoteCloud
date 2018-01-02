@@ -340,6 +340,20 @@ export async function createOrUpdateVote(request) {
 }
 
 /**
+ * 是否允许用户报名
+ * @param request
+ * @returns {*|AV.Promise|Promise.<T>}
+ */
+export async function enablePlayerApply(request) {
+  let {voteId, enable} = request.params
+  if (enable) {
+    return await updateVoteStatus(voteId, VOTE_STATUS.WAITING)
+  } else {
+    return await updateVoteStatus(voteId, VOTE_STATUS.STARTING)
+  }
+}
+
+/**
  * 判断投票活动状态，如是否已开始，，是否已经结束，每次状态变化时需要更新状态并返回最新的投票信息
  * @param vote
  */
