@@ -358,7 +358,7 @@ export async function enablePlayerApply(request) {
  * @param vote
  */
 async function judgeVoteStatus(vote) {
-  let nowDate = moment().format('YYYY-MM-DD')
+  let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
   let status = vote.attributes.status
   let startDate = vote.attributes.startDate
   let expire = vote.attributes.expire
