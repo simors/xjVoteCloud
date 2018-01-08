@@ -58,6 +58,7 @@ function constructVote(leanVote, includeUser) {
   vote.awards = voteAttr.awards
   vote.gifts = voteAttr.gifts
   vote.startDate = voteAttr.startDate
+  vote.endDate = voteAttr.endDate
   vote.expire = voteAttr.expire
   vote.status = voteAttr.status
   vote.applyNum = voteAttr.applyNum
@@ -67,10 +68,17 @@ function constructVote(leanVote, includeUser) {
   vote.enable = voteAttr.enable
   vote.enablePresent = true
   
-  let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
-  let hours = 24 * (vote.expire - 1) + 21      // 活动在晚上9点结束
-  let endDate = moment(vote.startDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
-  vote.counter = parseInt(((new Date(endDate)).getTime() - (new Date(nowDate)).getTime()) / 1000)
+  if (vote.startDate) {
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
+    let hours = 24 * (vote.expire - 1) + 21      // 活动在晚上9点结束
+    let endDate = moment(vote.startDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    vote.counter = parseInt(((new Date(endDate)).getTime() - (new Date(nowDate)).getTime()) / 1000)
+  } else if (vote.endDate) {
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
+    let hours = 21      // 活动在晚上9点结束
+    let endDate = moment(vote.endDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    vote.counter = parseInt(((new Date(endDate)).getTime() - (new Date(nowDate)).getTime()) / 1000)
+  }
   
   if (includeUser) {
     vote.creator = constructUser(voteAttr.creator)
@@ -210,7 +218,7 @@ export async function createVote(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {title, cover, notice, rule, organizer, awards, gifts, startDate, expire} = request.params
+  let {title, cover, notice, rule, organizer, awards, gifts, startDate, expire, endDate} = request.params
   let Votes = AV.Object.extend('Votes')
   let vote = new Votes()
   vote.set('title', title)
@@ -221,6 +229,7 @@ export async function createVote(request) {
   vote.set('awards', awards)
   vote.set('gifts', gifts)
   vote.set('startDate', startDate)
+  vote.set('endDate', endDate)
   vote.set('expire', expire)
   vote.set('creator', currentUser)
   vote.set('status', VOTE_STATUS.EDITING)
@@ -238,6 +247,7 @@ async function newVote(voteObj) {
   vote.set('awards', voteObj.awards)
   vote.set('gifts', voteObj.gifts)
   vote.set('startDate', voteObj.startDate)
+  vote.set('endDate', voteObj.endDate)
   vote.set('expire', voteObj.expire)
   vote.set('creator', voteObj.user)
   vote.set('status', VOTE_STATUS.EDITING)
@@ -276,6 +286,9 @@ async function updateVote(voteObj) {
   if (voteObj.status) {
     vote.set('status', voteObj.status)
   }
+  if (voteObj.endDate) {
+    vote.set('endDate', voteObj.endDate)
+  }
   return await vote.save()
 }
 
@@ -289,7 +302,7 @@ export async function createOrUpdateVote(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {id, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status} = request.params
+  let {id, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
   let voteObj = undefined
   let result = undefined
   if (!id) {
@@ -303,7 +316,8 @@ export async function createOrUpdateVote(request) {
       awards,
       gifts,
       startDate,
-      expire
+      expire,
+      endDate
     }
     result = await newVote(voteObj)
     return result
@@ -319,10 +333,25 @@ export async function createOrUpdateVote(request) {
     gifts,
     startDate,
     expire,
-    status
+    status,
+    endDate
   }
   result = await updateVote(voteObj)
   return result
+}
+
+/**
+ * 是否允许用户报名
+ * @param request
+ * @returns {*|AV.Promise|Promise.<T>}
+ */
+export async function enablePlayerApply(request) {
+  let {voteId, enable} = request.params
+  if (enable) {
+    return await updateVoteStatus(voteId, VOTE_STATUS.WAITING)
+  } else {
+    return await updateVoteStatus(voteId, VOTE_STATUS.STARTING)
+  }
 }
 
 /**
@@ -330,23 +359,34 @@ export async function createOrUpdateVote(request) {
  * @param vote
  */
 async function judgeVoteStatus(vote) {
-  let nowDate = moment().format('YYYY-MM-DD')
+  let nowDate = moment().format('YYYY-MM-DD HH:mm:ss')
   let status = vote.attributes.status
   let startDate = vote.attributes.startDate
   let expire = vote.attributes.expire
-  let endDate = undefined
+  let endDate = vote.attributes.endDate
+  let endDateCal = undefined
+  
   let query = new AV.Query('Votes')
   
-  if (status == VOTE_STATUS.WAITING) {
-    endDate = moment(startDate, 'YYYY-MM-DD').format('YYYY-MM-DD')
-    if (nowDate >= endDate) {
-      await updateVoteStatus(vote.id, VOTE_STATUS.STARTING)
-      return await query.get(vote.id)
+  if (startDate) {
+    if (status == VOTE_STATUS.WAITING) {
+      endDateCal = moment(startDate, 'YYYY-MM-DD').format('YYYY-MM-DD')
+      if (nowDate >= endDateCal) {
+        await updateVoteStatus(vote.id, VOTE_STATUS.STARTING)
+        return await query.get(vote.id)
+      }
+    } else if (status == VOTE_STATUS.STARTING) {
+      let hours = 24 * (expire - 1) + 21      // 活动在晚上9点结束
+      endDateCal = moment(startDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
+      if (nowDate >= endDateCal) {
+        await updateVoteStatus(vote.id, VOTE_STATUS.DONE)
+        return await query.get(vote.id)
+      }
     }
-  } else if (status == VOTE_STATUS.STARTING) {
-    let hours = 24 * (expire - 1) + 21      // 活动在晚上9点结束
-    endDate = moment(startDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
-    if (nowDate >= endDate) {
+  } else if (endDate) {
+    let hours = 21      // 活动在晚上9点结束
+    endDateCal = moment(endDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    if (nowDate >= endDateCal) {
       await updateVoteStatus(vote.id, VOTE_STATUS.DONE)
       return await query.get(vote.id)
     }
@@ -477,6 +517,19 @@ export async function updateVoteStatus(voteId, status) {
   }
   let vote = AV.Object.createWithoutData('Votes', voteId)
   vote.set('status', status)
+  return await vote.save()
+}
+
+/**
+ * 设置投票的使能
+ * @param request
+ * @returns {Promise<T>|*|AV.Promise}
+ */
+export async function setVoteDisable(request) {
+  let {voteId, disable} = request.params
+  
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  vote.set('enable', disable ? 0 : 1)
   return await vote.save()
 }
 
@@ -751,12 +804,36 @@ async function getVotePlayerByDate(playerId, user) {
  * @param user
  * @returns {boolean}
  */
-async function isVoteAllowed(playerId, user) {
+async function isVotePlayerAllowed(playerId, user) {
   const maxVotePerDay = 1
   let query = new AV.Query('VoteMap')
   let player = AV.Object.createWithoutData('Player', playerId)
   query.equalTo('voteDate', new Date(moment().format('YYYY-MM-DD')))
   query.equalTo('player', player)
+  query.equalTo('user', user)
+  let result = await query.find()
+  if (result.length > 0) {
+    let voteNum = result[0].attributes.voteNum
+    if (voteNum == maxVotePerDay) {
+      return false
+    }
+    return true
+  }
+  return true
+}
+
+/**
+ * 判断当天用户是否还可以投票，每个用户对每个投票活动只可以投1票
+ * @param voteId
+ * @param user
+ * @returns {boolean}
+ */
+async function isVoteAllowed(voteId, user) {
+  const maxVotePerDay = 1
+  let query = new AV.Query('VoteMap')
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  query.equalTo('voteDate', new Date(moment().format('YYYY-MM-DD')))
+  query.equalTo('vote', vote)
   query.equalTo('user', user)
   let result = await query.find()
   if (result.length > 0) {
@@ -780,7 +857,12 @@ export async function voteForPlayer(request) {
   }
   let {playerId} = request.params
   
-  let isAllowed = await isVoteAllowed(playerId, currentUser)
+  let vote = await getVoteByPlayer(playerId)
+  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
+    throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
+  }
+  
+  let isAllowed = await isVoteAllowed(vote.id, currentUser)
   if (!isAllowed) {
     throw new AV.Cloud.Error('Vote was used up', {code: errno.ERROR_VOTE_USE_UP});
   }
@@ -792,10 +874,6 @@ export async function voteForPlayer(request) {
   }
   
   let player = AV.Object.createWithoutData('Player', playerId)
-  let vote = await getVoteByPlayer(playerId)
-  if (vote.attributes.status == VOTE_STATUS.DONE || vote.attributes.status == VOTE_STATUS.ACCOUNTED) {
-    throw new AV.Cloud.Error('Vote was done', {code: errno.ERROR_VOTE_WAS_DONE});
-  }
   
   voteMap.set('user', currentUser)
   voteMap.set('player', player)
