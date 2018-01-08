@@ -11,30 +11,21 @@ var querystring = require('querystring')
 import {getUserByUnionid, createUserByWechatAuthData, associateUserWithWechatAuthData} from '../cloud/user'
 
 router.get('/', function (req, res, next) {
-  var code = req.query.code
   var state = req.query.state
-  var accessToken = undefined
-  var openid = undefined
-  var unionid = undefined
-  var expires_in = undefined
+  var accessToken = req.query.access_token
+  var openid = req.query.openid
+  var unionid = req.query.unionid
+  var expires_in = req.query.expires_in
   var authData = undefined
   let redirectUrl = ""
 
-  wechatAuthFuncs.getAccessToken(code).then((result) => {
-    console.log("getAccessToken result:", result)
-    accessToken = result.data.access_token;
-    openid = result.data.openid
-    unionid = result.data.unionid
-    expires_in = result.data.expires_in
+  authData = {
+    "openid": openid,
+    "access_token": accessToken,
+    "expires_at": Date.parse(expires_in),
+  }
 
-    authData = {
-      "openid": openid,
-      "access_token": accessToken,
-      "expires_at": Date.parse(expires_in),
-    }
-    return getUserByUnionid(unionid)
-
-  }).then((user) => {
+  getUserByUnionid(unionid).then((user) => {
     if(!user) {
       return createUserByWechatAuthData(authData, unionid)
     } else {

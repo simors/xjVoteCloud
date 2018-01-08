@@ -36,6 +36,8 @@ export function constructUser(leanUser) {
   user.city = leanUserAttr.city
   let weappUnion = leanUserAttr.authData.lc_weapp_union
   user.weappOpenid = weappUnion && weappUnion.openid ? weappUnion.openid : undefined
+  let wxpubAuthData = leanUserAttr.authData.weixin
+  user.wxpubOpenid = wxpubAuthData && wxpubAuthData.openid ? wxpubAuthData.openid : undefined
   user.agentLevel = leanUserAttr.agentLevel
   user.inviterId = leanUserAttr.inviter ? leanUserAttr.inviter.id : undefined
   user.friendsNum = leanUserAttr.friendsNum

@@ -14,7 +14,7 @@ function createMenu() {
       },
       {
         "type":"view",
-        "name":"我的钱包",
+        "name":"发布投票活动",
         "url": GLOBAL_CONFIG.WECHAT_CLIENT_DOMAIN + '/wallet'
       },
       {

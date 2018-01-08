@@ -7,6 +7,7 @@ import moment from 'moment'
 import math from 'mathjs'
 import {constructUser, getUserRoyalty} from '../user'
 import {saveVoteProfit} from '../pay'
+import mpMediaFuncs from '../../wechat/Media'
 
 export const VOTE_STATUS = {
   EDITING: 1,     // 正在编辑
@@ -542,7 +543,7 @@ async function getLastPlayerNumber(voteId) {
 }
 
 /**
- * 添加一个新的参赛选手
+ * 添加一个新的参赛选手(for微信小程序)
  * @param request
  */
 export async function createPlayerApply(request) {
@@ -567,6 +568,24 @@ export async function createPlayerApply(request) {
   player.set('declaration', declaration)
   player.set('album', album)
   return await player.save()
+}
+
+/**
+ * 添加一个新的参赛选手(for微信公众号)
+ * @param request
+ */
+export async function createPlayerApplyMP(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {voteId, name, declaration, album} = request.params
+
+  let imageBuffer = []
+  album.forEach( async (mediaId) => {
+    let result = await mpMediaFuncs.getMedia(mediaId)
+    console.log("getMedia:", result)
+  })
 }
 
 /**
