@@ -22,6 +22,9 @@ export const REDIS_DB = process.env.REDIS_DB
 export const LEAN_ENGINE_DOMAIN = process.env.LEAN_ENGINE_DOMAIN    //leancloud web主机域名
 export const WECHAT_CLIENT_DOMAIN = process.env.WECHAT_CLIENT_DOMAIN  //微信端域名
 
+//微信认证服务配置
+export const WECHAT_OAUTH_DOMAIN = process.env.WECHAT_OAUTH_DOMAIN
+
 //微信公众号配置
 export const WECHAT_CONFIG = {
   token: process.env.WECHAT_TOKEN,

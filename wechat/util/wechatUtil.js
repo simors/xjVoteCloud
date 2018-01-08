@@ -4,7 +4,7 @@
 const http = require('http')
 const https = require('https')
 var WechatAPI = require('wechat-api')
-var OAuth = require('wechat-oauth');
+import axios from 'axios'
 var GLOBAL_CONFIG = require('../../config')
 var wechatTokenFuncs = require('../Token')
 
@@ -22,9 +22,17 @@ wechat_api.setOpts({
     maxSockets
   })
 })
-var oauth_client = new OAuth(GLOBAL_CONFIG.WECHAT_CONFIG.appid, GLOBAL_CONFIG.WECHAT_CONFIG.appSecret, wechatTokenFuncs.getOauthTokenFromMysql, wechatTokenFuncs.setOauthTokenToMysql);
+
+async function getWechatUserInfo(openid) {
+  if(!openid){
+    return undefined
+  }
+  return await axios.get( GLOBAL_CONFIG.WECHAT_OAUTH_DOMAIN + '/1/wechat/userinfo?openid=' + openid).then((result) => {
+    return result.data
+  })
+}
 
 module.exports = {
+  getWechatUserInfo,
   wechat_api,
-  oauth_client,
 }

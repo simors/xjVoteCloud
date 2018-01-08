@@ -3,7 +3,7 @@
  */
 import AV from 'leanengine'
 import * as errno from '../errno'
-import mpAuthFuncs from '../../wechat/Auth'
+import {getWechatUserInfo} from '../../wechat/util/wechatUtil'
 
 const AGENT_LEVEL = {
   LEVEL_ONE: 1,
@@ -196,7 +196,8 @@ export async function associateUserWithWeappAuthData(userId, authData) {
 
 export async function createUserByWechatAuthData(authData, unionid) {
   let leanUser = new AV.User()
-  let wechatUserInfo = await mpAuthFuncs.getUserInfo(authData.openid)
+  let wechatUserInfo = await getWechatUserInfo(authData.openid)
+  console.log('wechatUserInfo', wechatUserInfo)
   leanUser.set('username', unionid)
   leanUser.set('unionid', unionid)
   leanUser.set('nickname', wechatUserInfo.nickname)

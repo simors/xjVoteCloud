@@ -5,7 +5,6 @@
 'use strict';
 var AV = require('leanengine');
 var router = require('express').Router();
-var wechatAuthFuncs = require('../wechat/Auth')
 var GLOBAL_CONFIG = require('../config')
 var querystring = require('querystring')
 import {getUserByUnionid, createUserByWechatAuthData, associateUserWithWechatAuthData} from '../cloud/user'

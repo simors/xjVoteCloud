@@ -46,45 +46,6 @@ function setApiTokenToRedis(token, callback) {
   })
 }
 
-function getOauthTokenFromMysql(openid, callback) {
-  var sql = ""
-  var mysqlConn = undefined
-
-  mysqlUtil.getConnection().then((conn) => {
-    mysqlConn = conn
-    sql = 'SELECT * FROM token WHERE openid = ?'
-    return mysqlUtil.query(conn, sql, [openid])
-  }).then((queryRes) => {
-    callback(null, queryRes.results[0])
-  }).catch((error) => {
-    callback(error)
-  }).finally(() => {
-    if (mysqlConn) {
-      mysqlUtil.release(mysqlConn)
-    }
-  })
-}
-
-function setOauthTokenToMysql(openid, token, callback) {
-  var sql = ""
-  var mysqlConn = undefined
-
-  mysqlUtil.getConnection().then((conn) => {
-    mysqlConn = conn
-    sql = 'REPLACE INTO token(access_token, expires_in, refresh_token, openid, scope, create_at) VALUES(?, ?, ?, ?, ?, ?)';
-    var fields = [token.access_token, token.expires_in, token.refresh_token, token.openid, token.scope, token.create_at];
-    return mysqlUtil.query(conn, sql, fields)
-  }).then(() => {
-    callback()
-  }).catch((error) => {
-    callback(error)
-  }).finally(() => {
-    if (mysqlConn) {
-      mysqlUtil.release(mysqlConn)
-    }
-  })
-}
-
 function getTicketTokenToRedis(type, callback) {
   Promise.promisifyAll(redis.RedisClient.prototype)
   var client = redis.createClient(GLOBAL_CONFIG.REDIS_PORT, GLOBAL_CONFIG.REDIS_URL)
@@ -130,8 +91,6 @@ function saveTicketTokenFromRedis(type, ticketToken, callback) {
 var mpTokenFuncs = {
   getApiTokenFromRedis: getApiTokenFromRedis,
   setApiTokenToRedis: setApiTokenToRedis,
-  getOauthTokenFromMysql: getOauthTokenFromMysql,
-  setOauthTokenToMysql: setOauthTokenToMysql,
   getTicketToken: getTicketTokenToRedis,
   saveTicketToken: saveTicketTokenFromRedis,
 }

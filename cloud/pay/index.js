@@ -478,6 +478,8 @@ export async function createWithdrawApply(request) {
   let openid = undefined
   if (channel === 'wx_lite') {
     openid = currentUser.attributes.authData.lc_weapp_union.openid
+  } else if(channel === 'wx_pub') {
+    openid = currentUser.attributes.authData.weixin.openid
   }
   if (!openid) {
     throw new AV.Cloud.Error('用户未绑定微信号', {code: errno.ERROR_NO_WECHAT})
