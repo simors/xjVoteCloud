@@ -632,13 +632,30 @@ export async function createPlayerApplyMP(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {voteId, name, declaration, album} = request.params
+  let {voteId, name, declaration, imageServerIds} = request.params
 
-  let imageBuffer = []
-  album.forEach( async (mediaId) => {
-    let result = await mpMediaFuncs.getMedia(mediaId)
-    console.log("getMedia:", result)
-  })
+  let imageUrls = []
+  for (let i = 0; i < imageServerIds.length; i ++) {
+    let buffer = await mpMediaFuncs.getMedia(imageServerIds[i])
+    let data = {'base64': buffer.toString('base64')}
+    let file = new AV.File(name + i, data)
+    file = await file.save()
+    imageUrls.push(file.url())
+  }
+  // 更新参与人数
+  await incVoteApplyNum(voteId)
+  let number = await getLastPlayerNumber(voteId)
+
+  let Player = AV.Object.extend('Player')
+  let player = new Player()
+  let vote = AV.Object.createWithoutData('Votes', voteId)
+  player.set('vote', vote)
+  player.set('creator', currentUser)
+  player.set('number', number)
+  player.set('name', name)
+  player.set('declaration', declaration)
+  player.set('album', imageUrls)
+  return await player.save()
 }
 
 /**

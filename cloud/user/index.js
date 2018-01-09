@@ -197,7 +197,6 @@ export async function associateUserWithWeappAuthData(userId, authData) {
 export async function createUserByWechatAuthData(authData, unionid) {
   let leanUser = new AV.User()
   let wechatUserInfo = await getWechatUserInfo(authData.openid)
-  console.log('wechatUserInfo', wechatUserInfo)
   leanUser.set('username', unionid)
   leanUser.set('unionid', unionid)
   leanUser.set('nickname', wechatUserInfo.nickname)

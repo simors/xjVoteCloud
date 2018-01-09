@@ -8,7 +8,7 @@ function getMedia(media_id) {
     return Promise.reject()
   }
   return new Promise(function (resolve, reject) {
-    wechat_api.get(media_id, function (err, result) {
+    wechat_api.getMedia(media_id, function (err, result) {
       if(err) {
         console.log("getMedia", err)
         reject(err)
