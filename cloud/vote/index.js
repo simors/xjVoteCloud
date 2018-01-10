@@ -126,9 +126,13 @@ function constructGiftMap(leanGiftMap) {
   giftMap.updatedAt = moment(new Date(leanGiftMap.updatedAt)).format('YYYY-MM-DD HH:mm:ss')
   giftMap.giftNum = giftMapAttr.giftNum
   giftMap.price = giftMapAttr.price
+  giftMap.voteId = giftMapAttr.vote? giftMapAttr.vote.id : undefined
   giftMap.vote = constructVote(giftMapAttr.vote, false)
+  giftMap.giftId = giftMapAttr.gift? giftMapAttr.gift.id : undefined
   giftMap.gift = constructGift(giftMapAttr.gift)
+  giftMap.userId = giftMapAttr.user? giftMapAttr.user.id : undefined
   giftMap.user = constructUser(giftMapAttr.user)
+  giftMap.playerId = giftMapAttr.player? giftMapAttr.player.id : undefined
   giftMap.player = constructPlayer(giftMapAttr.player, false, false)
   return giftMap
 }
