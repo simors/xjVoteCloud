@@ -23,6 +23,11 @@ const VOTE_SEARCH_TYPE = {
   PERSONAL: 'personal',
 }
 
+const VOTE_TYPE = {
+  WITH_GIFT: 1,
+  NO_GIFT: 2
+}
+
 function constructGift(leanAward) {
   let award = {}
   if (!leanAward) {
@@ -49,6 +54,7 @@ function constructVote(leanVote, includeUser) {
   vote.id = leanVote.id
   vote.createdAt = moment(new Date(leanVote.createdAt)).format('YYYY-MM-DD HH:mm:ss')
   vote.updatedAt = moment(new Date(leanVote.updatedAt)).format('YYYY-MM-DD HH:mm:ss')
+  vote.type = voteAttr.type ? voteAttr.type : VOTE_TYPE.WITH_GIFT
   vote.creatorId = voteAttr.creator ? voteAttr.creator.id : undefined
   vote.title = voteAttr.title
   vote.cover = voteAttr.cover
@@ -222,9 +228,10 @@ export async function createVote(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {title, cover, notice, rule, organizer, awards, gifts, startDate, expire, endDate} = request.params
+  let {type, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, endDate} = request.params
   let Votes = AV.Object.extend('Votes')
   let vote = new Votes()
+  vote.set('type', type)
   vote.set('title', title)
   vote.set('cover', cover)
   vote.set('notice', notice)
@@ -243,6 +250,7 @@ export async function createVote(request) {
 async function newVote(voteObj) {
   let Votes = AV.Object.extend('Votes')
   let vote = new Votes()
+  vote.set('type', voteObj.type)
   vote.set('title', voteObj.title)
   vote.set('cover', voteObj.cover)
   vote.set('notice', voteObj.notice)
@@ -260,6 +268,9 @@ async function newVote(voteObj) {
 
 async function updateVote(voteObj) {
   let vote = AV.Object.createWithoutData('Votes', voteObj.id)
+  if (voteObj.type) {
+    vote.set('type', voteObj.type)
+  }
   if (voteObj.title) {
     vote.set('title', voteObj.title)
   }
@@ -306,12 +317,13 @@ export async function createOrUpdateVote(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {id, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
+  let {id, type, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
   let voteObj = undefined
   let result = undefined
   if (!id) {
     voteObj = {
       user: currentUser,
+      type,
       title,
       cover,
       notice,
@@ -328,6 +340,7 @@ export async function createOrUpdateVote(request) {
   }
   voteObj = {
     id,
+    type,
     title,
     cover,
     notice,
