@@ -11,9 +11,10 @@ function getWechatJsSdkConfig(request, response) {
 
   var param = {
     debug: debug || false,
-    jsApiList: jsApiList,
+    jsApiList: jsApiList.split(','),
     url: url
   }
+  console.log("getWechatJsSdkConfig:", param)
   wechat_api.getJsConfig(param, function (err, result) {
     if(err) {
       console.log("getWechatJsSdkConfig", err)
