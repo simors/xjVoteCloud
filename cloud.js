@@ -16,6 +16,7 @@ AV.Cloud.define('voteListPlayerGifts', voteCloud.listGiftsUnderPlayer);
 AV.Cloud.define('voteCreateVote', voteCloud.createVote);
 AV.Cloud.define('voteEnablePlayerApply', voteCloud.enablePlayerApply);
 AV.Cloud.define('voteCreateOrUpdateVote', voteCloud.createOrUpdateVote);
+AV.Cloud.define('voteCreateOrUpdateVoteMP', voteCloud.createOrUpdateVoteMP);
 AV.Cloud.define('voteFetchById', voteCloud.fetchVoteById);
 AV.Cloud.define('voteFetchSet', voteCloud.fetchVotes);
 AV.Cloud.define('voteIncVotePv', voteCloud.incVotePv);
