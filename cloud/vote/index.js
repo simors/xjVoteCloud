@@ -58,6 +58,8 @@ function constructVote(leanVote, includeUser) {
   vote.creatorId = voteAttr.creator ? voteAttr.creator.id : undefined
   vote.title = voteAttr.title
   vote.cover = voteAttr.cover
+  vote.coverSet = voteAttr.coverSet
+  vote.minImgMeta = voteAttr.minImgMeta
   vote.notice = voteAttr.notice
   vote.rule = voteAttr.rule
   vote.organizer = voteAttr.organizer
@@ -228,12 +230,14 @@ export async function createVote(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {type, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, endDate} = request.params
+  let {type, title, cover, coverSet, minImgMeta, notice, rule, organizer, awards, gifts, startDate, expire, endDate} = request.params
   let Votes = AV.Object.extend('Votes')
   let vote = new Votes()
   vote.set('type', type)
   vote.set('title', title)
   vote.set('cover', cover)
+  vote.set('coverSet', coverSet)
+  vote.set('minImgMeta', minImgMeta)
   vote.set('notice', notice)
   vote.set('rule', rule)
   vote.set('organizer', organizer)
@@ -253,6 +257,8 @@ async function newVote(voteObj) {
   vote.set('type', voteObj.type)
   vote.set('title', voteObj.title)
   vote.set('cover', voteObj.cover)
+  vote.set('coverSet', voteObj.coverSet)
+  vote.set('minImgMeta', voteObj.minImgMeta)
   vote.set('notice', voteObj.notice)
   vote.set('rule', voteObj.rule)
   vote.set('organizer', voteObj.organizer)
@@ -276,6 +282,12 @@ async function updateVote(voteObj) {
   }
   if (voteObj.cover) {
     vote.set('cover', voteObj.cover)
+  }
+  if (voteObj.coverSet) {
+    vote.set('coverSet', voteObj.coverSet)
+  }
+  if (voteObj.minImgMeta) {
+    vote.set('minImgMeta', voteObj.minImgMeta)
   }
   if (voteObj.notice) {
     vote.set('notice', voteObj.notice)
@@ -317,7 +329,7 @@ export async function createOrUpdateVote(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  let {id, type, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
+  let {id, type, title, cover, coverSet, minImgMeta, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
   let voteObj = undefined
   let result = undefined
   if (!id) {
@@ -326,6 +338,8 @@ export async function createOrUpdateVote(request) {
       type,
       title,
       cover,
+      coverSet,
+      minImgMeta,
       notice,
       rule,
       organizer,
@@ -343,6 +357,8 @@ export async function createOrUpdateVote(request) {
     type,
     title,
     cover,
+    coverSet,
+    minImgMeta,
     notice,
     rule,
     organizer,

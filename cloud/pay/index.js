@@ -590,8 +590,8 @@ export async function fetchWithdrawRecords(request) {
       sql += 'WHERE `applyType`=? '
       sqlParams.push(applyType)
     } else {
-      sql += 'WHERE `applyType` IN (?, ?) '
-      sqlParams.push(WITHDRAW_APPLY_TYPE.PROFIT, WITHDRAW_APPLY_TYPE.REFUND)
+      sql += 'WHERE `applyType` IN (?) '
+      sqlParams.push(WITHDRAW_APPLY_TYPE.PROFIT)
     }
     if (startTime && endTime) {
       sql += 'AND `applyDate`>? AND `applyDate`<? '
