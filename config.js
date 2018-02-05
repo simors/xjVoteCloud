@@ -25,6 +25,9 @@ export const WECHAT_CLIENT_DOMAIN = process.env.WECHAT_CLIENT_DOMAIN  //微信�
 //微信认证服务配置
 export const WECHAT_OAUTH_DOMAIN = process.env.WECHAT_OAUTH_DOMAIN
 
+const uuidv4 = require('uuid/v4')
+export const NODE_ID = uuidv4()
+
 //微信公众号配置
 export const WECHAT_CONFIG = {
   token: process.env.WECHAT_TOKEN,

@@ -11,7 +11,8 @@ import moment from 'moment'
 import mysqlUtil from '../mysqlUtil'
 import {getUserInfoById, tobeAgentLevelTwo, incUserFriends} from '../user'
 import {VOTE_STATUS, presentGift, incVoteProfit, updateVoteStatus} from '../vote'
-import {PINGPP_APP_ID, PINGPP_API_KEY} from '../../config'
+import {PINGPP_APP_ID, PINGPP_API_KEY, RABBITMQ_URL, NODE_ID} from '../../config'
+import amqp from 'amqplib'
 
 var pingpp = Pingpp(PINGPP_API_KEY)
 
@@ -153,6 +154,70 @@ export async function createWithdrawRequest(request) {
         if (err != null ) {
           console.error(err)
           updateWalletProcess(mysqlConn, metadata.toUser, WALLET_PROCESS_TYPE.NORMAL_PROCESS)
+          reject(new AV.Cloud.Error('request transfer error' + err.message, {code: errno.ERROR_CREATE_TRANSFER}))
+        }
+        resolve(transfer)
+      })
+    })
+    return transfer
+  } catch (e) {
+    if(mysqlConn) {
+      await mysqlUtil.rollback(mysqlConn)
+    }
+    throw e
+  } finally {
+    if(mysqlConn) {
+      await mysqlUtil.release(mysqlConn)
+    }
+  }
+}
+
+/**
+ * 服务器内服发起的提现请求
+ * @param withdrawId
+ * @param userId
+ * @param openid
+ * @param amount
+ * @param channel
+ * @param dealType
+ * @returns {*}
+ */
+export async function createInnerWithdrawRequest(withdrawId, userId, openid, amount, channel, dealType) {
+  pingpp.setPrivateKeyPath(__dirname + "/rsa_private_key.pem")
+  
+  let walletInfo = await getWalletInfo(userId)
+  if(walletInfo.process != WALLET_PROCESS_TYPE.NORMAL_PROCESS) {
+    throw new AV.Cloud.Error('提现处理中', {code: errno.ERROR_IN_WITHDRAW_PROCESS})
+  }
+  
+  let mysqlConn = undefined
+  try {
+    mysqlConn = await mysqlUtil.getConnection()
+    await updateWalletProcess(mysqlConn, userId, WALLET_PROCESS_TYPE.WITHDRAW_PROCESS)
+    let transfer = await new Promise((resolve, reject) => {
+      const order_no = uuidv4().replace(/-/g, '').substr(0, 16)
+      pingpp.transfers.create({
+        order_no: order_no,
+        app: {id: PINGPP_APP_ID},
+        channel: channel,
+        amount: mathjs.chain(amount).multiply(100).done(),
+        currency: "cny",
+        type: "b2c",
+        recipient: openid,
+        extra: {},
+        description: "服务器自动发起提现" ,
+        metadata: {
+          'fromUser': 'platform',
+          'toUser': userId,
+          'dealType': dealType,
+          'operator': '',
+          'withdrawId': withdrawId,
+          'fee': 0
+        },
+      }, function (err, transfer) {
+        if (err != null ) {
+          console.error(err)
+          updateWalletProcess(mysqlConn, userId, WALLET_PROCESS_TYPE.NORMAL_PROCESS)
           reject(new AV.Cloud.Error('request transfer error' + err.message, {code: errno.ERROR_CREATE_TRANSFER}))
         }
         resolve(transfer)
@@ -502,6 +567,11 @@ export async function createWithdrawApply(request) {
     if (!insertRes.results.insertId) {
       throw new AV.Cloud.Error('生成取现申请失败', {code: errno.EIO})
     }
+    let dealType = undefined
+    if (applyType === WITHDRAW_APPLY_TYPE.PROFIT) {
+      dealType = DEAL_TYPE.WITHDRAW
+      enterWithdrawQueue(insertRes.results.insertId, userId, openid, amount, channel, dealType)
+    }
     return insertRes.results
   } catch (e) {
     throw e
@@ -510,6 +580,41 @@ export async function createWithdrawApply(request) {
       await mysqlUtil.release(conn)
     }
   }
+}
+
+/**
+ * 将提现请求加入处理队列
+ * @param withdrawId
+ * @param userId
+ * @param openid
+ * @param amount
+ * @param channel
+ * @param dealType
+ * @returns {*}
+ */
+export async function enterWithdrawQueue(withdrawId, userId, openid, amount, channel, dealType) {
+  let ex = 'xjVote_withdraw'
+  let message = {
+    withdrawId: withdrawId,
+    userId: userId,
+    openid: openid,
+    amount: amount,
+    channel: channel,
+    dealType: dealType,
+    nodeId: NODE_ID,
+  }
+  return amqp.connect(RABBITMQ_URL).then(function(conn) {
+    return conn.createChannel().then(function(ch) {
+      var ok = ch.assertExchange(ex, 'fanout', {durable: false})
+      
+      return ok.then(function() {
+        ch.publish(ex, '', Buffer.from(JSON.stringify(message)));
+        return ch.close();
+      });
+    }).finally(function() { conn.close(); });
+  }).catch((error) => {
+    throw error
+  })
 }
 
 /**

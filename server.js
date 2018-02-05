@@ -4,6 +4,7 @@ require("babel-polyfill")
 var wechat_api = require('./wechat/util/wechatUtil').wechat_api
 var mpTokenFuncs = require('./wechat/Token')
 var mpMenuFuncs = require('./wechat/Menu')
+var amqpWithdrawEvent = require('./amqp').amqpWithdrawEvent
 
 
 var AV = require('leanengine');
@@ -28,6 +29,9 @@ wechat_api.getLatestToken(function (err, token) {
 })
 
 var app = require('./app');
+
+// 创建提现队列
+amqpWithdrawEvent()
 
 // 端口一定要从环境变量 `LEANCLOUD_APP_PORT` 中获取。
 // LeanEngine 运行时会分配端口并赋值到该变量。
