@@ -11,21 +11,6 @@ function createMenu() {
         "type": "view",
         "name": "小吉投票",
         "url": GLOBAL_CONFIG.WECHAT_CLIENT_DOMAIN
-      },
-      {
-        "type":"view",
-        "name":"发布投票活动",
-        "url": GLOBAL_CONFIG.WECHAT_CLIENT_DOMAIN + '/wallet'
-      },
-      {
-        "name":"调试",
-        "sub_button": [
-          {
-            "type":"view",
-            "name":"android清理缓冲",
-            "url": "http://debugx5.qq.com"
-          }
-        ]
       }
     ]
   }

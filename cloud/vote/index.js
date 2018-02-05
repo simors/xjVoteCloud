@@ -320,7 +320,7 @@ async function updateVote(voteObj) {
 }
 
 /**
- * 创建或更新投票活动，当判断没有id时，创建一个新的投票，否则更新已有投票
+ * 创建或更新投票活动，当判断没有id时，创建一个新的投票，否则更新已有投票(for微信小程序)
  * @param request
  * @returns {*}
  */
@@ -359,6 +359,92 @@ export async function createOrUpdateVote(request) {
     cover,
     coverSet,
     minImgMeta,
+    notice,
+    rule,
+    organizer,
+    awards,
+    gifts,
+    startDate,
+    expire,
+    status,
+    endDate
+  }
+  result = await updateVote(voteObj)
+  return result
+}
+
+/**
+ * 创建或更新投票活动，当判断没有id时，创建一个新的投票，否则更新已有投票(for微信公众号)
+ * @param request
+ * @returns {*}
+ */
+export async function createOrUpdateVoteMP(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  console.log("createOrUpdateVoteMP", request.params)
+  let {id, type, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
+
+  if(cover && cover.length > 0) {
+    if(cover.indexOf('http') != 0) {
+      let buffer = await mpMediaFuncs.getMedia(cover)
+      let data = {'base64': buffer.toString('base64')}
+      let file = new AV.File('cover' + id, data)
+      file = await file.save()
+      cover = file.url()
+    }
+  }
+
+  if(awards && awards.length > 0) {
+    for (let award of awards) {
+      if(award.awardPhoto && award.awardPhoto.indexOf('http') != 0) {
+        let buffer = await mpMediaFuncs.getMedia(award.awardPhoto)
+        let data = {'base64': buffer.toString('base64')}
+        let file = new AV.File(award.awardName + id, data)
+        file = await file.save()
+        award.awardPhoto = file.url()
+      }
+    }
+  }
+
+  if(organizer && organizer.length > 0) {
+    for (let value of organizer) {
+      if(value.type === 'image' && value.url && value.url.indexOf('http') != 0) {
+        let buffer = await mpMediaFuncs.getMedia(value.url)
+        let data = {'base64': buffer.toString('base64')}
+        let file = new AV.File(value.url + id, data)
+        file = await file.save()
+        value.url = file.url()
+      }
+    }
+  }
+
+  let voteObj = undefined
+  let result = undefined
+  if (!id) {
+    voteObj = {
+      user: currentUser,
+      type,
+      title,
+      cover,
+      notice,
+      rule,
+      organizer,
+      awards,
+      gifts,
+      startDate,
+      expire,
+      endDate
+    }
+    result = await newVote(voteObj)
+    return result
+  }
+  voteObj = {
+    id,
+    type,
+    title,
+    cover,
     notice,
     rule,
     organizer,
