@@ -983,6 +983,20 @@ async function isVoteAllowed(voteId, user) {
 }
 
 /**
+ * 判断是否还可以投票的网络请求
+ * @param request
+ */
+export async function reqIsVoteAllowed(request) {
+  let currentUser = request.currentUser
+  if (!currentUser) {
+    throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
+  }
+  let {voteId} = request.params
+  
+  return await isVoteAllowed(voteId, currentUser)
+}
+
+/**
  * 为某个参赛选手投票
  * @param request
  */

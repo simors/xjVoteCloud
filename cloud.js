@@ -31,6 +31,7 @@ AV.Cloud.define('voteSearchPlayer', voteCloud.searchPlayer);
 AV.Cloud.define('voteIncPlayerPv', voteCloud.incPlayerPv);
 AV.Cloud.define('voteFetchRank', voteCloud.fetchVoteRank);
 AV.Cloud.define('voteVoteForPlayer', voteCloud.voteForPlayer);
+AV.Cloud.define('voteIsVoteAllowed', voteCloud.reqIsVoteAllowed);
 AV.Cloud.define('voteGetRuleTemplate', voteCloud.getRuleTemplate);
 AV.Cloud.define('voteRunProfitAccount', voteCloud.runVoteProfitAccount);
 AV.Cloud.define('voteGetCreatePwd', voteCloud.getCreateVotePassword);
