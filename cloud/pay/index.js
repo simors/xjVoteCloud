@@ -866,6 +866,11 @@ export async function saveVoteProfit(profit, creator) {
   try {
     mysqlConn = await mysqlUtil.getConnection()
     await mysqlUtil.beginTransaction(mysqlConn)
+    let sql = "SELECT * FROM `Wallet` WHERE `userId` = ?"
+    let queryRes = await mysqlUtil.query(mysqlConn, sql, [creator])
+    if(queryRes.results.length === 0) {
+      await createUserWallet(creator)
+    }
     await addDealRecord(mysqlConn, deal)
     await updateBalance(mysqlConn, creator, profit, WALLET_OPER.INCREMENT)
     await mysqlUtil.commit(mysqlConn)
