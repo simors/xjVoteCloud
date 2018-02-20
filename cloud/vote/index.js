@@ -1095,7 +1095,7 @@ export async function runVoteProfitAccount(request) {
     }
     for (let vote of votes) {
       let voteAttr = vote.attributes
-      if (!voteAttr.profit || !voteAttr.creator || !voteAttr.creator.id || !voteAttr.creator.attributes) {
+      if (voteAttr.profit == undefined || !voteAttr.creator || !voteAttr.creator.id || !voteAttr.creator.attributes) {
         continue
       }
       let profit = voteAttr.profit
