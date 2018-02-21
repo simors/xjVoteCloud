@@ -1098,6 +1098,7 @@ export async function runVoteProfitAccount(request) {
       if (voteAttr.profit == undefined || !voteAttr.creator || !voteAttr.creator.id || !voteAttr.creator.attributes) {
         continue
       }
+      console.log('begin to account vote id', vote.id)
       let profit = voteAttr.profit
       let creator = voteAttr.creator.id
       let royalty = getUserRoyalty(voteAttr.creator.attributes.agentLevel)
@@ -1109,11 +1110,9 @@ export async function runVoteProfitAccount(request) {
         console.error('error in statistics vote profit with voteId', vote.id, e)
       }
     }
-    lastDate = votes[votes.length - 1].createdAt
-    if (votes.length < 1000) {
+    if (votes.length > 0) {
+      lastDate = votes[votes.length - 1].createdAt
       votes = await fetchVotesOrderByDate(lastDate)
-    } else {
-      break
     }
   }
 }
