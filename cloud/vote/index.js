@@ -1074,10 +1074,10 @@ export async function incVoteProfit(voteId, profit) {
 async function fetchVotesOrderByDate(lastDate) {
   let query = new AV.Query('Votes')
   query.equalTo('status', VOTE_STATUS.DONE)
+  query.descending('createdAt')
   if (lastDate) {
     query.lessThan('createdAt', new Date(lastDate))
   }
-  query.descending('createdAt')
   query.include('creator')
   query.limit(1000)
   return await query.find()
@@ -1087,6 +1087,7 @@ async function fetchVotesOrderByDate(lastDate) {
  * 执行收益结算
  */
 export async function runVoteProfitAccount(request) {
+  console.log('begin to run vote profit account')
   let lastDate = undefined
   let votes = await fetchVotesOrderByDate()
   while (1) {
