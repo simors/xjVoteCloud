@@ -1099,7 +1099,7 @@ export async function runVoteProfitAccount(request) {
       if (voteAttr.profit == undefined || !voteAttr.creator || !voteAttr.creator.id || !voteAttr.creator.attributes) {
         continue
       }
-      console.log('begin to account vote id', vote.id)
+      console.log('begin to account vote id', vote.id, ' with status ', voteAttr.status)
       let profit = voteAttr.profit
       let creator = voteAttr.creator.id
       let royalty = getUserRoyalty(voteAttr.creator.attributes.agentLevel)
