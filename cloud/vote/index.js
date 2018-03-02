@@ -505,7 +505,7 @@ async function judgeVoteStatus(vote) {
   } else if (endDate) {
     let hours = 21      // 活动在晚上9点结束
     endDateCal = moment(endDate, 'YYYY-MM-DD').add(hours, 'hours').format('YYYY-MM-DD HH:mm:ss')
-    if (nowDate >= endDateCal) {
+    if (nowDate >= endDateCal && status == VOTE_STATUS.STARTING) {
       await updateVoteStatus(vote.id, VOTE_STATUS.DONE)
       return await query.get(vote.id)
     }
