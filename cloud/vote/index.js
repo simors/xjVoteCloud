@@ -408,8 +408,9 @@ export async function createOrUpdateVoteMP(request) {
     }
   }
   
-  let newCoverSet = []
+  let newCoverSet = undefined
   if (coverSet && coverSet.length > 0) {
+    newCoverSet = []
     for (let coverItem of coverSet) {
       if(coverItem.indexOf('http') != 0) {
         let buffer = await mpMediaFuncs.getMedia(coverItem)
