@@ -254,15 +254,6 @@ export async function createVote(request) {
   vote.set('expire', expire)
   vote.set('creator', currentUser)
   vote.set('status', VOTE_STATUS.EDITING)
-  try{
-    let payload = {
-      userId:currentUser.id,
-      contributionType: CONTRIBUTION_TYPE.CREATE_VOTE
-    }
-    await addContribution(payload)
-  }catch(e){
-    throw new AV.Cloud.Error('贡献添加失败', {code: errno.ERROR_CONTRIBUTION_FAIL});
-  }
   return await vote.save()
 }
 
@@ -385,6 +376,13 @@ export async function createOrUpdateVote(request) {
     endDate
   }
   result = await updateVote(voteObj)
+  if (voteObj.status==VOTE_STATUS.WAITING){
+      let payload = {
+        userId:currentUser.id,
+        contributionType: CONTRIBUTION_TYPE.CREATE_VOTE
+      }
+      await addContribution(payload)
+  }
   return result
 }
 
@@ -487,6 +485,17 @@ export async function createOrUpdateVoteMP(request) {
     endDate
   }
   result = await updateVote(voteObj)
+  if (voteObj.status==VOTE_STATUS.WAITING){
+    try{
+      let payload = {
+        userId:currentUser.id,
+        contributionType: CONTRIBUTION_TYPE.CREATE_VOTE
+      }
+      await addContribution(payload)
+    }catch(e){
+      throw new AV.Cloud.Error('贡献添加失败', {code: errno.ERROR_CONTRIBUTION_FAIL});
+    }
+  }
   return result
 }
 
@@ -1066,6 +1075,11 @@ export async function voteForPlayer(request) {
   await incPlayerVoteNum(playerId, 1)
   // 增加此投票活动的总票数统计值
   await incVoteNum(vote.id, 1)
+  let payload = {
+    userId:currentUser.id,
+    contributionType: CONTRIBUTION_TYPE.VOTE
+  }
+  await addContribution(payload)
   return newVoteMap
 }
 
@@ -1164,21 +1178,17 @@ export async function getCreateVotePassword(request) {
  * @return
  */
 export async function addContribution(params){
-  let {userId, contibutionType } = params
-  try{
+  let {userId, contributionType } = params
     let user = AV.Object.createWithoutData('_User',userId)
-    user.increment('contribution',contibutionType)
-    await user.save()
-    return
-  }catch(e){
-    console.log('分数记录错误')
-  }
+    user.increment('contribution',contributionType)
+    return await user.save()
 }
 
 /**
- * 创建投票以后增加贡献值
+ * 测试增加贡献值
  * @param request
  */
-export async function createVoteContribution(request){
-
+export async function testAddContribution(request){
+  let {userId,contributionType} = request.params
+  return await addContribution(request.params)
 }

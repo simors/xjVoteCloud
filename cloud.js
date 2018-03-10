@@ -35,6 +35,8 @@ AV.Cloud.define('voteIsVoteAllowed', voteCloud.reqIsVoteAllowed);
 AV.Cloud.define('voteGetRuleTemplate', voteCloud.getRuleTemplate);
 AV.Cloud.define('voteRunProfitAccount', voteCloud.runVoteProfitAccount);
 AV.Cloud.define('voteGetCreatePwd', voteCloud.getCreateVotePassword);
+AV.Cloud.define('voteTestAddContribution', voteCloud.testAddContribution);
+
 
 /* 支付 */
 AV.Cloud.define('payCreatePaymentRequest', payCloud.createPaymentRequest)
