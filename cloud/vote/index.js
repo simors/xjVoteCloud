@@ -408,16 +408,15 @@ export async function createOrUpdateVoteMP(request) {
     }
   }
   
-  let newCoverSet = undefined
   if (coverSet && coverSet.length > 0) {
-    newCoverSet = []
-    for (let coverItem of coverSet) {
+    for (let i = 0; i < coverSet.length; i++) {
+      let coverItem = coverSet[i]
       if(coverItem.indexOf('http') != 0) {
         let buffer = await mpMediaFuncs.getMedia(coverItem)
         let data = {'base64': buffer.toString('base64')}
         let file = new AV.File('cover' + id, data)
         file = await file.save()
-        newCoverSet.push(file.url())
+        coverSet[i] = file.url()
       }
     }
   }
@@ -454,7 +453,7 @@ export async function createOrUpdateVoteMP(request) {
       type,
       title,
       cover,
-      coverSet: newCoverSet,
+      coverSet,
       minImgMeta,
       notice,
       rule,
@@ -473,7 +472,7 @@ export async function createOrUpdateVoteMP(request) {
     type,
     title,
     cover,
-    coverSet: newCoverSet,
+    coverSet,
     minImgMeta,
     notice,
     rule,
@@ -485,6 +484,7 @@ export async function createOrUpdateVoteMP(request) {
     status,
     endDate
   }
+  console.log('voteObj', voteObj)
   result = await updateVote(voteObj)
   if (voteObj.status==VOTE_STATUS.WAITING){
     try{
