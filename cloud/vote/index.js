@@ -383,8 +383,7 @@ export async function createOrUpdateVoteMP(request) {
   if (!currentUser) {
     throw new AV.Cloud.Error('Permission denied, need to login first', {code: errno.EACCES});
   }
-  console.log("createOrUpdateVoteMP", request.params)
-  let {id, type, title, cover, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
+  let {id, type, title, cover, coverSet, minImgMeta, notice, rule, organizer, awards, gifts, startDate, expire, status, endDate} = request.params
 
   if(cover && cover.length > 0) {
     if(cover.indexOf('http') != 0) {
@@ -393,6 +392,19 @@ export async function createOrUpdateVoteMP(request) {
       let file = new AV.File('cover' + id, data)
       file = await file.save()
       cover = file.url()
+    }
+  }
+  
+  let newCoverSet = []
+  if (coverSet && coverSet.length > 0) {
+    for (let coverItem of coverSet) {
+      if(coverItem.indexOf('http') != 0) {
+        let buffer = await mpMediaFuncs.getMedia(coverItem)
+        let data = {'base64': buffer.toString('base64')}
+        let file = new AV.File('cover' + id, data)
+        file = await file.save()
+        newCoverSet.push(file.url())
+      }
     }
   }
 
@@ -428,6 +440,8 @@ export async function createOrUpdateVoteMP(request) {
       type,
       title,
       cover,
+      coverSet: newCoverSet,
+      minImgMeta,
       notice,
       rule,
       organizer,
@@ -445,6 +459,8 @@ export async function createOrUpdateVoteMP(request) {
     type,
     title,
     cover,
+    coverSet: newCoverSet,
+    minImgMeta,
     notice,
     rule,
     organizer,
