@@ -140,6 +140,7 @@ export const ERROR_BASE               =   1000;
 export const ERROR_BASE_USER          =   -(ERROR_BASE);
 export const ERROR_BASE_VOTE          =   -(ERROR_BASE + 1000)
 export const ERROR_BASE_PAY           =   -(ERROR_BASE + 2000)
+export const ERROR_BASE_CONTRIBUTION  =   -(ERROR_BASE + 3000)
 
 // 投票
 export const ERROR_VOTE_USE_UP        =   ERROR_BASE_VOTE               // 当天的投票数被用完
@@ -153,3 +154,6 @@ export const ERROR_NO_WECHAT                = (ERROR_BASE_PAY - 4)         /* �
 export const ERROR_NOT_ENOUGH_MONEY         = (ERROR_BASE_PAY - 5)         /* 余额不足        */
 export const ERROR_IN_WITHDRAW_PROCESS      = (ERROR_BASE_PAY - 6)         /* 提现处理中      */
 export const ERROR_PAY_INNER_PROCESS        = (ERROR_BASE_PAY - 7)         /* 支付内部异常      */
+
+//贡献
+export const ERROR_CONTRIBUTION_FAIL       = (ERROR_BASE_CONTRIBUTION - 1) /* 贡献生成失败 */

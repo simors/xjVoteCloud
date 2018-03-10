@@ -18,6 +18,12 @@ export const VOTE_STATUS = {
   ACCOUNTED: 6,   // 已结算
 }
 
+export const CONTRIBUTION_TYPE = {
+  SHARE: 15,
+  CREATE_VOTE: 15,
+  VOTE: 10,
+}
+
 const VOTE_SEARCH_TYPE = {
   ALL: 'all',
   PERSONAL: 'personal',
@@ -248,6 +254,15 @@ export async function createVote(request) {
   vote.set('expire', expire)
   vote.set('creator', currentUser)
   vote.set('status', VOTE_STATUS.EDITING)
+  try{
+    let payload = {
+      userId:currentUser.id,
+      contributionType: CONTRIBUTION_TYPE.CREATE_VOTE
+    }
+    await addContribution(payload)
+  }catch(e){
+    throw new AV.Cloud.Error('贡献添加失败', {code: errno.ERROR_CONTRIBUTION_FAIL});
+  }
   return await vote.save()
 }
 
@@ -1125,4 +1140,29 @@ export async function runVoteProfitAccount(request) {
  */
 export async function getCreateVotePassword(request) {
   return "ewi2j1"
+}
+
+/**
+ * 增加用户的贡献度
+ * @param params
+ * @return
+ */
+export async function addContribution(params){
+  let {userId, contibutionType } = params
+  try{
+    let user = AV.Object.createWithoutData('_User',userId)
+    user.increment('contribution',contibutionType)
+    await user.save()
+    return
+  }catch(e){
+    console.log('分数记录错误')
+  }
+}
+
+/**
+ * 创建投票以后增加贡献值
+ * @param request
+ */
+export async function createVoteContribution(request){
+
 }
