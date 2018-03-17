@@ -487,16 +487,13 @@ export async function createOrUpdateVoteMP(request) {
   console.log('voteObj', voteObj)
   result = await updateVote(voteObj)
   if (voteObj.status==VOTE_STATUS.WAITING){
-    try{
-      let payload = {
-        userId:currentUser.id,
-        contributionType: CONTRIBUTION_TYPE.CREATE_VOTE
-      }
-      await addContribution(payload)
-    }catch(e){
-      throw new AV.Cloud.Error('贡献添加失败', {code: errno.ERROR_CONTRIBUTION_FAIL});
+    let payload = {
+      userId:currentUser.id,
+      contributionType: CONTRIBUTION_TYPE.CREATE_VOTE
     }
+    await addContribution(payload)
   }
+  console.log('here is right======>',result)
   return result
 }
 
